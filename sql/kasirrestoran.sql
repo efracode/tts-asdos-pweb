@@ -58,9 +58,9 @@ CREATE TABLE detail_transaksi (
 -- Data Dummy Users (Password: admin123)
 INSERT INTO users (username, password, nama, role) VALUES
 ('admin', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Administrator', 'admin'),
-('kasir1', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Budi Kasir', 'kasir');
+('kasir1', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Teo Kasir', 'kasir');
 
--- Data Dummy
+-- Data Dummy Kategori
 INSERT INTO kategori (nama_kategori) VALUES
 ('Makanan'),
 ('Minuman'),
