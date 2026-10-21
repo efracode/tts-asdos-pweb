@@ -14,25 +14,27 @@ class Menu {
         $this->conn = $db;
     }
 
-    // READ ALL
+    // READ ALL: semua menu + nama kategori (return array)
     public function getAll() {
-        $query = "SELECT m.id, m.nama_menu, m.harga, m.stok, m.gambar, 
-                         k.nama_kategori 
-                  FROM " . $this->table . " m 
-                  LEFT JOIN kategori k ON m.id_kategori = k.id 
+        $query = "SELECT m.id, m.nama_menu, m.harga, m.stok, m.gambar,
+                         k.nama_kategori
+                  FROM " . $this->table . " m
+                  LEFT JOIN kategori k ON m.id_kategori = k.id
                   ORDER BY m.id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt;
+        return $stmt->fetchAll();
     }
 
-    // READ BY KATEGORI
+    // READ BY KATEGORI (return array)
     public function getByKategori($id_kategori) {
-        $query = "SELECT * FROM " . $this->table . " WHERE id_kategori = :id_kategori ORDER BY nama_menu ASC";
+        $query = "SELECT * FROM " . $this->table . "
+                  WHERE id_kategori = :id_kategori
+                  ORDER BY nama_menu ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id_kategori", $id_kategori, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt;
+        return $stmt->fetchAll();
     }
 
     // READ ONE
@@ -46,12 +48,11 @@ class Menu {
 
     // CREATE
     public function create() {
-        $query = "INSERT INTO " . $this->table . " 
-                  (id_kategori, nama_menu, harga, stok, gambar) 
+        $query = "INSERT INTO " . $this->table . "
+                  (id_kategori, nama_menu, harga, stok, gambar)
                   VALUES (:id_kategori, :nama_menu, :harga, :stok, :gambar)";
         $stmt = $this->conn->prepare($query);
 
-        // Sanitasi input
         $this->nama_menu = htmlspecialchars(strip_tags($this->nama_menu));
         $this->gambar    = htmlspecialchars(strip_tags($this->gambar));
 
@@ -66,11 +67,11 @@ class Menu {
 
     // UPDATE
     public function update($id) {
-        $query = "UPDATE " . $this->table . " SET 
-                  id_kategori = :id_kategori, 
-                  nama_menu = :nama_menu, 
-                  harga = :harga, 
-                  stok = :stok 
+        $query = "UPDATE " . $this->table . " SET
+                  id_kategori = :id_kategori,
+                  nama_menu   = :nama_menu,
+                  harga       = :harga,
+                  stok        = :stok
                   WHERE id = :id";
         $stmt = $this->conn->prepare($query);
 
@@ -95,10 +96,13 @@ class Menu {
 
     // UPDATE STOK
     public function kurangiStok($id, $qty) {
-        $query = "UPDATE " . $this->table . " SET stok = stok - :qty WHERE id = :id AND stok >= :qty";
+        $query = "UPDATE " . $this->table . "
+                  SET stok = stok - :qty
+                  WHERE id = :id AND stok >= :qty";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":qty", $qty, PDO::PARAM_INT);
         $stmt->bindParam(":id",  $id,  PDO::PARAM_INT);
-        return $stmt->execute();
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
     }
 }
