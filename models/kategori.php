@@ -11,10 +11,11 @@ class Kategori {
     }
 
     public function getAll() {
-        $query = "SELECT id, nama_kategori, created_at FROM " . $this->table . " ORDER BY id DESC";
+        $query = "SELECT id, nama_kategori, created_at
+                  FROM " . $this->table . " ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt;
+        return $stmt->fetchAll();
     }
 
     public function getById($id) {
@@ -53,5 +54,14 @@ class Kategori {
         $stmt->bindParam(":id", $id, PDO::PARAM_INT);
 
         return $stmt->execute();
+    }
+
+    public function punyaMenu($id) {
+        $query = "SELECT COUNT(*) AS total FROM menu WHERE id_kategori = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch();
+        return $row['total'] > 0;
     }
 }

@@ -93,16 +93,4 @@ class Menu {
         $stmt->bindParam(":id", $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
-
-    // UPDATE STOK
-    public function kurangiStok($id, $qty) {
-        $query = "UPDATE " . $this->table . "
-                  SET stok = stok - :qty
-                  WHERE id = :id AND stok >= :qty";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":qty", $qty, PDO::PARAM_INT);
-        $stmt->bindParam(":id",  $id,  PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->rowCount() > 0;
-    }
 }

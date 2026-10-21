@@ -13,7 +13,7 @@ class User {
         $this->conn = $db;
     }
 
-    // LOGIN: Cek username dan verifikasi password
+    // LOGIN
     public function login() {
         $query = "SELECT id, username, password, nama, role FROM " . $this->table . " WHERE username = :username LIMIT 1";
         $stmt = $this->conn->prepare($query);
@@ -22,28 +22,27 @@ class User {
 
         $row = $stmt->fetch();
 
-        // Cek apakah user ada dan password cocok
         if ($row && password_verify($this->password, $row['password'])) {
-            $this->id = $row['id'];
+            $this->id       = $row['id'];
             $this->username = $row['username'];
-            $this->nama = $row['nama'];
-            $this->role = $row['role'];
+            $this->nama     = $row['nama'];
+            $this->role     = $row['role'];
             return true;
         }
         return false;
     }
 
-    // CREATE (password di-hash)
+    // CREATE
     public function create() {
+        if (!in_array($this->role, ['admin', 'kasir'], true)) {
+            return false;
+        }
+
         $query = "INSERT INTO " . $this->table . " (username, password, nama, role) VALUES (:username, :password, :nama, :role)";
         $stmt = $this->conn->prepare($query);
 
-        // Sanitasi input
         $this->username = htmlspecialchars(strip_tags($this->username));
-        $this->nama = htmlspecialchars(strip_tags($this->nama));
-        $this->role = htmlspecialchars(strip_tags($this->role));
-        
-        // Hash password pakai Bcrypt
+        $this->nama     = htmlspecialchars(strip_tags($this->nama));
         $this->password = password_hash($this->password, PASSWORD_DEFAULT);
 
         $stmt->bindParam(":username", $this->username);
@@ -59,7 +58,7 @@ class User {
         $query = "SELECT id, username, nama, role, created_at FROM " . $this->table . " ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt;
+        return $stmt->fetchAll();
     }
 
     // READ ONE
@@ -73,12 +72,15 @@ class User {
 
     // UPDATE
     public function update($id) {
+        if (!in_array($this->role, ['admin', 'kasir'], true)) {
+            return false;
+        }
+
         $query = "UPDATE " . $this->table . " SET username = :username, nama = :nama, role = :role WHERE id = :id";
         $stmt = $this->conn->prepare($query);
 
         $this->username = htmlspecialchars(strip_tags($this->username));
-        $this->nama = htmlspecialchars(strip_tags($this->nama));
-        $this->role = htmlspecialchars(strip_tags($this->role));
+        $this->nama     = htmlspecialchars(strip_tags($this->nama));
 
         $stmt->bindParam(":username", $this->username);
         $stmt->bindParam(":nama", $this->nama);

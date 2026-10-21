@@ -1,6 +1,6 @@
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+07:00";
+CREATE DATABASE IF NOT EXISTS kasirrestoran DEFAULT CHARSET utf8mb4;
+USE kasirrestoran;
+
 
 -- Tabel Users
 CREATE TABLE users (
@@ -55,15 +55,15 @@ CREATE TABLE detail_transaksi (
     FOREIGN KEY (id_menu) REFERENCES menu(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Data Dummy Users (Password: admin123)
+-- Data Dummy Users
+-- admin  : password = admin123
+-- kasir1 : password = kasir123
 INSERT INTO users (username, password, nama, role) VALUES
-('admin', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Administrator', 'admin'),
-('kasir1', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Teo Kasir', 'kasir');
+('admin',  '$2y$12$Yccbt3upsGP7XWzQgAl1de5u1MxrnASWoUNbKOGlN9SjkvzeFtYIq', 'Administrator', 'admin'),
+('kasir1', '$2y$12$6nulggvzwE1CH.tFygcrEe.v24JEXJaCnZkIdOtPB8t1hW5VdUHNG', 'Teo Kasir',     'kasir');
 
 -- Data Dummy Kategori
 INSERT INTO kategori (nama_kategori) VALUES
 ('Makanan'),
 ('Minuman'),
 ('Snack');
-
-COMMIT;
