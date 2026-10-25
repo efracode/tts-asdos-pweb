@@ -119,6 +119,12 @@ class MenuController {
             json_response(['success' => false, 'message' => 'Ukuran gambar maksimal 2MB'], 422);
         }
 
+        // Verifikasi konten file: pastikan benar-benar format gambar valid, bukan script disamarkan
+        $infoGambar = @getimagesize($file['tmp_name']);
+        if ($infoGambar === false) {
+            json_response(['success' => false, 'message' => 'File yang diupload bukan file gambar valid'], 422);
+        }
+
         $nama = 'menu_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ekstensi;
         if (!move_uploaded_file($file['tmp_name'], __DIR__ . '/../uploads/' . $nama)) {
             json_response(['success' => false, 'message' => 'Gagal menyimpan gambar'], 500);
