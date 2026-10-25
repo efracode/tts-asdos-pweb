@@ -1,25 +1,21 @@
 CREATE DATABASE IF NOT EXISTS kasirrestoran DEFAULT CHARSET utf8mb4;
 USE kasirrestoran;
 
-
--- Tabel Users
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     nama VARCHAR(100) NOT NULL,
-    role ENUM('admin', 'kasir') DEFAULT 'kasir',
+    role ENUM('admin','kasir') DEFAULT 'kasir',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Tabel Kategori
 CREATE TABLE kategori (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nama_kategori VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Tabel Menu
 CREATE TABLE menu (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_kategori INT NOT NULL,
@@ -31,7 +27,6 @@ CREATE TABLE menu (
     FOREIGN KEY (id_kategori) REFERENCES kategori(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Tabel Transaksi
 CREATE TABLE transaksi (
     id INT AUTO_INCREMENT PRIMARY KEY,
     no_transaksi VARCHAR(20) UNIQUE NOT NULL,
@@ -39,12 +34,11 @@ CREATE TABLE transaksi (
     total INT NOT NULL,
     bayar INT NOT NULL,
     kembalian INT NOT NULL,
-    status ENUM('pending', 'selesai', 'batal') DEFAULT 'pending',
+    status ENUM('pending','selesai','batal') DEFAULT 'pending',
     tanggal TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_user) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Tabel Detail Transaksi
 CREATE TABLE detail_transaksi (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_transaksi INT NOT NULL,
@@ -59,11 +53,17 @@ CREATE TABLE detail_transaksi (
 -- admin  : password = admin123
 -- kasir1 : password = kasir123
 INSERT INTO users (username, password, nama, role) VALUES
-('admin',  '$2y$12$Yccbt3upsGP7XWzQgAl1de5u1MxrnASWoUNbKOGlN9SjkvzeFtYIq', 'Administrator', 'admin'),
-('kasir1', '$2y$12$6nulggvzwE1CH.tFygcrEe.v24JEXJaCnZkIdOtPB8t1hW5VdUHNG', 'Teo Kasir',     'kasir');
+('admin',  '$2y$12$/cEKzih8gaLXO8XSjoo00OuXb3hNGGFmUuqh7eMvhQ19hUbEfK7.O', 'Administrator', 'admin'),
+('kasir1', '$2y$12$BTOvgHP3z2fcJsoUWkZN.uGH7a3wkUrFKpG5imQQUWQaUa.xiOXi2', 'Teo Kasir',     'kasir');
 
--- Data Dummy Kategori
-INSERT INTO kategori (nama_kategori) VALUES
-('Makanan'),
-('Minuman'),
-('Snack');
+INSERT INTO kategori (nama_kategori) VALUES ('Makanan'), ('Minuman'), ('Snack');
+
+INSERT INTO menu (id_kategori, nama_menu, harga, stok, gambar) VALUES
+(1, 'Nasi Goreng Spesial', 25000, 50, NULL),
+(1, 'Ayam Bakar Madu', 35000, 30, NULL),
+(1, 'Mie Goreng Jawa', 22000, 40, NULL),
+(2, 'Es Teh Manis', 5000, 100, NULL),
+(2, 'Es Jeruk', 7000, 80, NULL),
+(2, 'Kopi Hitam', 8000, 60, NULL),
+(3, 'Kentang Goreng', 15000, 45, NULL),
+(3, 'Pisang Goreng', 10000, 50, NULL);
