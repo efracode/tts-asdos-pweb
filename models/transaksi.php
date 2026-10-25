@@ -73,7 +73,7 @@ class Transaksi {
                                                  (id_transaksi, id_menu, qty, subtotal)
                                                  VALUES (:trx, :menu, :qty, :sub)");
             $stmt_stok = $this->conn->prepare("UPDATE menu SET stok = stok - :qty
-                                               WHERE id = :id AND stok >= :qty");
+                                               WHERE id = :id AND stok >= :min_qty");
 
             foreach ($items as $item) {
                 $subtotal = $item['harga'] * $item['qty'];
@@ -88,6 +88,7 @@ class Transaksi {
 
                 $stmt_stok->bindParam(":qty", $item['qty'], PDO::PARAM_INT);
                 $stmt_stok->bindParam(":id", $item['id_menu'], PDO::PARAM_INT);
+                $stmt_stok->bindParam(":min_qty", $item['qty'], PDO::PARAM_INT);
                 $stmt_stok->execute();
                 if ($stmt_stok->rowCount() === 0) {
                     throw new Exception("Stok untuk menu ID " . $item['id_menu'] . " tidak mencukupi.");

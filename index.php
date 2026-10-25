@@ -1,5 +1,18 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+    // Error yang lolos dari controller tetap dibalas JSON biar frontend bisa menampilkan pesannya
+set_exception_handler(function (Throwable $e) {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['success' => false, 'message' => 'Kesalahan server: ' . $e->getMessage()]);
+    exit;
+});
+}
 
 // Body JSON murni (fetch + Content-Type: application/json) digabung ke $_POST
 if (empty($_POST)) {
@@ -46,6 +59,9 @@ switch ($route) {
         break;
     case 'transaksi':
         (new TransaksiController())->handle($action);
+        break;
+    case 'user':
+        (new UserController())->handle($action);
         break;
     case 'home':
         json_response(['success' => true, 'message' => 'API Aktif']);

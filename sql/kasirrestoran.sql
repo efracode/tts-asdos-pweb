@@ -7,6 +7,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     nama VARCHAR(100) NOT NULL,
     role ENUM('admin','kasir') DEFAULT 'kasir',
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -52,9 +53,9 @@ CREATE TABLE detail_transaksi (
 -- Data Dummy Users
 -- admin  : password = admin123
 -- kasir1 : password = kasir123
-INSERT INTO users (username, password, nama, role) VALUES
-('admin',  '$2y$12$/cEKzih8gaLXO8XSjoo00OuXb3hNGGFmUuqh7eMvhQ19hUbEfK7.O', 'Administrator', 'admin'),
-('kasir1', '$2y$12$BTOvgHP3z2fcJsoUWkZN.uGH7a3wkUrFKpG5imQQUWQaUa.xiOXi2', 'Teo Kasir',     'kasir');
+INSERT INTO users (username, password, nama, role, is_active) VALUES
+('admin',  '$2y$12$/cEKzih8gaLXO8XSjoo00OuXb3hNGGFmUuqh7eMvhQ19hUbEfK7.O', 'Administrator', 'admin', 1),
+('kasir1', '$2y$12$BTOvgHP3z2fcJsoUWkZN.uGH7a3wkUrFKpG5imQQUWQaUa.xiOXi2', 'Teo Kasir',     'kasir', 1);
 
 INSERT INTO kategori (nama_kategori) VALUES ('Makanan'), ('Minuman'), ('Snack');
 

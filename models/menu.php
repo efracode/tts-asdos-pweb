@@ -39,7 +39,7 @@ class Menu {
 
     public function create() {
         $this->nama_menu = htmlspecialchars(strip_tags($this->nama_menu));
-        $this->gambar    = htmlspecialchars(strip_tags($this->gambar));
+        $this->gambar    = ($this->gambar !== null && $this->gambar !== '') ? htmlspecialchars(strip_tags($this->gambar)) : null;
 
         $stmt = $this->conn->prepare("INSERT INTO " . $this->table . " (id_kategori, nama_menu, harga, stok, gambar)
                                       VALUES (:id_kategori, :nama_menu, :harga, :stok, :gambar)");
@@ -47,13 +47,17 @@ class Menu {
         $stmt->bindParam(":nama_menu", $this->nama_menu);
         $stmt->bindParam(":harga", $this->harga, PDO::PARAM_INT);
         $stmt->bindParam(":stok", $this->stok, PDO::PARAM_INT);
-        $stmt->bindParam(":gambar", $this->gambar);
+        if ($this->gambar === null) {
+            $stmt->bindValue(":gambar", null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindParam(":gambar", $this->gambar, PDO::PARAM_STR);
+        }
         return $stmt->execute();
     }
 
     public function update($id) {
         $this->nama_menu = htmlspecialchars(strip_tags($this->nama_menu));
-        $this->gambar    = htmlspecialchars(strip_tags($this->gambar));
+        $this->gambar    = ($this->gambar !== null && $this->gambar !== '') ? htmlspecialchars(strip_tags($this->gambar)) : null;
 
         $stmt = $this->conn->prepare("UPDATE " . $this->table . " SET
                                       id_kategori = :id_kategori, nama_menu = :nama_menu,
@@ -64,7 +68,11 @@ class Menu {
         $stmt->bindParam(":nama_menu", $this->nama_menu);
         $stmt->bindParam(":harga", $this->harga, PDO::PARAM_INT);
         $stmt->bindParam(":stok", $this->stok, PDO::PARAM_INT);
-        $stmt->bindParam(":gambar", $this->gambar);
+        if ($this->gambar === null) {
+            $stmt->bindValue(":gambar", null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindParam(":gambar", $this->gambar, PDO::PARAM_STR);
+        }
         return $stmt->execute();
     }
 
