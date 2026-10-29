@@ -122,7 +122,7 @@ class Transaksi {
              VALUES (:transaksi, :menu, :qty, :subtotal)'
         );
         $stok = $this->conn->prepare(
-            'UPDATE menu SET stok = stok - :qty WHERE id = :menu AND stok >= :qty'
+            'UPDATE menu SET stok = stok - :qty_kurang WHERE id = :menu AND stok >= :qty_tersedia'
         );
 
         foreach ($items as $item) {
@@ -133,9 +133,13 @@ class Transaksi {
                 ':subtotal' => $item['harga'] * $item['qty'],
             ]);
             $stok->execute([
-                ':qty' => $item['qty'],
+                ':qty_kurang' => $item['qty'],
                 ':menu' => $item['id_menu'],
+                ':qty_tersedia' => $item['qty'],
             ]);
+            if ($stok->rowCount() !== 1) {
+                throw new RuntimeException('Stok berubah sebelum transaksi selesai. Silakan coba lagi.');
+            }
         }
     }
 
