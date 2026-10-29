@@ -1,319 +1,304 @@
 ﻿# Sistem Kasir Restoran
 
-Aplikasi kasir berbasis web untuk manajemen transaksi restoran. Dibangun dengan arsitektur MVC sederhana menggunakan PHP native dan MySQL, tanpa framework backend tambahan.
+Aplikasi kasir berbasis web untuk manajemen transaksi restoran. Menggunakan pola arsitektur MVC sederhana dengan PHP murni dan MySQL, tanpa framework backend tambahan.
 
 ---
 
-## Teknologi yang Digunakan
+## Daftar Isi
 
-### Backend
+1. Teknologi yang Digunakan
+2. Struktur Proyek
+3. Arsitektur dan Alur Aplikasi
+4. Skema Database
+5. Daftar API Endpoint
+6. Fitur Keamanan
+7. Cara Menjalankan
+8. Hak Akses Pengguna
 
-| Teknologi | Versi | Keterangan |
+---
+
+## 1. Teknologi yang Digunakan
+
+### Backend (Server)
+
+| Teknologi | Versi | Fungsi |
 |---|---|---|
-| PHP | 8.5.12 | Bahasa pemrograman utama backend |
-| MySQL | 8.x | Database relasional |
-| PDO (PHP Data Objects) | Bawaan PHP | Abstraksi koneksi database, mencegah SQL Injection |
-| PHP Session | Bawaan PHP | Manajemen autentikasi pengguna |
-| password_hash / password_verify | Bawaan PHP | Enkripsi password menggunakan algoritma Bcrypt (cost factor 12) |
+| PHP | 8.5.12 | Bahasa pemrograman utama |
+| MySQL | 8.x | Penyimpanan data |
+| PDO | Bawaan PHP | Penghubung PHP ke MySQL, aman dari SQL Injection |
+| PHP Session | Bawaan PHP | Menyimpan data login pengguna |
+| Bcrypt | Bawaan PHP | Enkripsi password (tidak bisa dibaca balik) |
 
-### Frontend
+### Frontend (Tampilan)
 
-| Teknologi | Versi | Keterangan |
+| Teknologi | Versi | Fungsi |
 |---|---|---|
-| HTML5 | - | Struktur halaman |
-| JavaScript (Vanilla) | ES2020+ | Logika interaktif halaman tanpa framework tambahan |
-| Tailwind CSS | CDN v3 | Framework CSS utility-first untuk tampilan |
-| Font Awesome | 6.4.0 (CDN) | Ikon antarmuka |
-| Plus Jakarta Sans | Google Fonts | Tipografi utama |
-| Fetch API | Bawaan Browser | Komunikasi asinkron ke REST API backend |
+| HTML5 | - | Struktur halaman web |
+| JavaScript | ES2020+ | Logika interaktif (tanpa framework) |
+| Tailwind CSS | v3 (CDN) | Tampilan dan gaya antarmuka |
+| Font Awesome | 6.4.0 (CDN) | Ikon-ikon antarmuka |
+| Plus Jakarta Sans | Google Fonts | Jenis huruf yang dipakai |
+| Fetch API | Bawaan Browser | Mengambil dan mengirim data ke server tanpa reload halaman |
 
-### Server dan Lingkungan
+### Kebutuhan Server
 
-| Komponen | Rekomendasi |
+| Komponen | Syarat Minimum |
 |---|---|
-| Web Server | Apache (XAMPP) atau Nginx |
-| PHP | Versi 8.1 ke atas, diuji pada 8.5.12 |
+| Web Server | Apache (via XAMPP) |
+| PHP | Versi 8.1 ke atas |
 | Database | MySQL 8.x atau MariaDB 10.6+ |
-| Charset | utf8mb4 (mendukung karakter Unicode penuh) |
 
 ---
 
-## Struktur Proyek
+## 2. Struktur Proyek
 
 ```
 TTS_Asdos/
 |
-|-- index.php                    # Entry point API, router utama, autoloader kelas
-|-- admin.php                    # Halaman dashboard admin (menu, kategori, kasir, riwayat)
-|-- kasir.php                    # Halaman antarmuka kasir (transaksi POS)
-|-- login.php                    # Halaman login untuk semua peran
+|-- index.php                 # Pintu masuk API: menerima semua request, menentukan controller
+|-- admin.php                 # Halaman untuk admin (kelola menu, kategori, kasir, laporan)
+|-- kasir.php                 # Halaman untuk kasir (input transaksi, cetak struk)
+|-- login.php                 # Halaman login semua pengguna
 |
 |-- config/
-|   |-- database.php             # Konfigurasi koneksi PDO ke MySQL
+|   |-- database.php          # Pengaturan koneksi ke MySQL
 |
-|-- models/
-|   |-- user.php                 # Model pengguna (login, CRUD user, toggle aktif)
-|   |-- menu.php                 # Model menu makanan/minuman (CRUD, upload gambar)
-|   |-- kategori.php             # Model kategori menu (CRUD, validasi relasi)
-|   |-- transaksi.php            # Model transaksi (simpan, riwayat, detail, stok)
+|-- models/                   # Kelas yang berinteraksi langsung dengan database
+|   |-- user.php              # Data pengguna (login, tambah, edit, nonaktifkan)
+|   |-- menu.php              # Data menu (tambah, edit, hapus, upload foto)
+|   |-- kategori.php          # Data kategori menu
+|   |-- transaksi.php         # Data transaksi (simpan, riwayat, detail, stok)
 |
-|-- controllers/
-|   |-- authController.php       # Menangani login, logout, cek sesi
-|   |-- menuController.php       # Menangani CRUD menu dan upload gambar
-|   |-- kategoriController.php   # Menangani CRUD kategori
-|   |-- transaksiController.php  # Menangani penyimpanan dan pembacaan transaksi
-|   |-- userController.php       # Menangani CRUD kasir oleh admin
+|-- controllers/              # Kelas yang menerima request dan memanggil model
+|   |-- authController.php    # Login, logout, cek sesi
+|   |-- menuController.php    # CRUD menu
+|   |-- kategoriController.php# CRUD kategori
+|   |-- transaksiController.php# Simpan dan baca transaksi
+|   |-- userController.php    # Kelola akun kasir oleh admin
 |
 |-- sql/
-|   |-- kasirrestoran.sql        # Skrip DDL dan data dummy untuk setup database
+|   |-- kasirrestoran.sql     # File SQL: membuat tabel dan mengisi data awal
 |
-|-- uploads/
-|   |-- .htaccess                # Proteksi agar file di uploads tidak bisa dieksekusi PHP
-|
-|-- info.md                      # Catatan desain dan spesifikasi proyek
-|-- TODO.md                      # Catatan progres dan daftar tugas pengembangan
-|-- README.md                    # Dokumentasi proyek ini
+|-- uploads/                  # Tempat menyimpan foto menu yang diunggah
+|   |-- .htaccess             # Keamanan: mencegah file di sini dieksekusi sebagai PHP
 ```
 
 ---
 
-## Arsitektur Aplikasi
+## 3. Arsitektur dan Alur Aplikasi
 
-Proyek ini menggunakan pola **MVC (Model-View-Controller)** yang disederhanakan:
+Proyek ini menggunakan pola **MVC (Model - View - Controller)**:
 
-- **Model** - Bertanggung jawab atas semua interaksi dengan database melalui PDO. Setiap tabel memiliki satu kelas model.
-- **Controller** - Menerima request dari router, memanggil model, dan mengembalikan respons JSON.
-- **View** - File PHP (admin.php, kasir.php, login.php) yang merender antarmuka HTML. Komunikasi data ke backend dilakukan sepenuhnya melalui Fetch API JavaScript.
+| Lapisan | File | Peran |
+|---|---|---|
+| View | admin.php, kasir.php, login.php | Menampilkan antarmuka ke pengguna |
+| Controller | controllers/*.php | Menerima permintaan, memvalidasi, memanggil Model |
+| Model | models/*.php | Mengambil atau menyimpan data ke database |
 
-Alur Request:
+Cara kerja secara ringkas:
 
 ```
-Browser / Klien
-    |
-    v
-login.php / admin.php / kasir.php      (View: render HTML, kirim Fetch request)
-    |
-    v
-index.php?route=xxx&action=yyy         (Router dan Autoloader kelas)
-    |
-    v
-Controller (sesuai route)              (Validasi input, cek autentikasi, panggil model)
-    |
-    v
-Model                                  (Query ke MySQL via PDO prepared statement)
-    |
-    v
-JSON Response                          (Dikembalikan ke JavaScript di browser)
+Pengguna klik/submit di browser
+        |
+        v
+View (admin.php / kasir.php) mengirim request ke index.php via Fetch API
+        |
+        v
+index.php menentukan Controller yang tepat berdasarkan ?route=xxx&action=yyy
+        |
+        v
+Controller memvalidasi input dan hak akses, lalu memanggil Model
+        |
+        v
+Model menjalankan query ke MySQL dan mengembalikan hasilnya
+        |
+        v
+Controller mengembalikan JSON ke browser
+        |
+        v
+JavaScript di browser memperbarui tampilan tanpa reload halaman
 ```
 
 ---
 
-## Konfigurasi Database
+## 4. Skema Database
 
-File konfigurasi: config/database.php
+Database bernama `kasirrestoran` terdiri dari 5 tabel yang saling berelasi:
 
 ```
-Host     : localhost
-Database : kasirrestoran
-Username : root
-Password : (kosong, default XAMPP)
-Charset  : utf8mb4
+users ─────────────────────────── transaksi ──── detail_transaksi
+  (id, username, password,           (id_user FK)      (id_transaksi FK)
+   nama, role, is_active)                               (id_menu FK)
+                                                              |
+kategori ──── menu                                         menu
+  (id)         (id_kategori FK)     (id)
 ```
-
-Atribut PDO yang diaktifkan:
-
-- PDO::ATTR_ERRMODE = ERRMODE_EXCEPTION - Error database dilempar sebagai exception PHP
-- PDO::ATTR_DEFAULT_FETCH_MODE = FETCH_ASSOC - Hasil query selalu berupa array asosiatif
-- PDO::ATTR_EMULATE_PREPARES = false - Prepared statement native, bukan emulasi
-
----
-
-## Skema Database
 
 ### Tabel: users
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | INT AUTO_INCREMENT | Primary key |
-| username | VARCHAR(50) UNIQUE | Nama login, unik per pengguna |
-| password | VARCHAR(255) | Hash Bcrypt dengan cost factor 12 |
+| id | INT | Primary key, otomatis bertambah |
+| username | VARCHAR(50) | Nama login, harus unik |
+| password | VARCHAR(255) | Hash Bcrypt, tidak disimpan dalam bentuk asli |
 | nama | VARCHAR(100) | Nama lengkap pengguna |
-| role | ENUM('admin','kasir') | Peran pengguna, default 'kasir' |
-| is_active | TINYINT(1) | Status akun: 1 aktif, 0 nonaktif |
+| role | ENUM | Nilai: `admin` atau `kasir` |
+| is_active | TINYINT(1) | `1` = akun aktif, `0` = akun dinonaktifkan |
 | created_at | TIMESTAMP | Waktu pendaftaran, diisi otomatis |
 
 ### Tabel: kategori
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | INT AUTO_INCREMENT | Primary key |
-| nama_kategori | VARCHAR(50) | Nama kategori menu |
-| created_at | TIMESTAMP | Waktu dibuat, diisi otomatis |
+| id | INT | Primary key |
+| nama_kategori | VARCHAR(50) | Nama kategori (contoh: Makanan, Minuman) |
+| created_at | TIMESTAMP | Diisi otomatis |
 
 ### Tabel: menu
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | INT AUTO_INCREMENT | Primary key |
-| id_kategori | INT | Foreign key ke tabel kategori |
-| nama_menu | VARCHAR(100) | Nama menu |
-| harga | INT | Harga dalam satuan Rupiah |
-| stok | INT | Jumlah stok porsi tersedia |
-| gambar | VARCHAR(255) | Nama file gambar di folder uploads, bisa NULL |
-| created_at | TIMESTAMP | Waktu dibuat, diisi otomatis |
+| id | INT | Primary key |
+| id_kategori | INT | Relasi ke tabel kategori |
+| nama_menu | VARCHAR(100) | Nama item menu |
+| harga | INT | Harga dalam Rupiah |
+| stok | INT | Jumlah porsi tersedia |
+| gambar | VARCHAR(255) | Nama file foto, bisa kosong (NULL) |
+| created_at | TIMESTAMP | Diisi otomatis |
 
 ### Tabel: transaksi
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | INT AUTO_INCREMENT | Primary key |
-| no_transaksi | VARCHAR(20) UNIQUE | Nomor unik format TRX-YYYYMMDD-NNN |
-| id_user | INT | Foreign key ke users (kasir yang melayani) |
-| total | INT | Total harga seluruh item |
+| id | INT | Primary key |
+| no_transaksi | VARCHAR(20) | Nomor unik, format: TRX-YYYYMMDD-NNN |
+| id_user | INT | Relasi ke tabel users (kasir yang bertugas) |
+| total | INT | Total tagihan dalam Rupiah |
 | bayar | INT | Uang yang dibayarkan pelanggan |
-| kembalian | INT | Hasil total dikurangi bayar |
-| status | ENUM | Nilai: pending, selesai, atau batal |
+| kembalian | INT | Uang kembalian (bayar - total) |
+| status | ENUM | Nilai: `pending`, `selesai`, atau `batal` |
 | tanggal | TIMESTAMP | Waktu transaksi, diisi otomatis |
 
 ### Tabel: detail_transaksi
 
+Menyimpan rincian item per transaksi (satu transaksi bisa punya banyak baris).
+
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | INT AUTO_INCREMENT | Primary key |
-| id_transaksi | INT | Foreign key ke transaksi |
-| id_menu | INT | Foreign key ke menu |
+| id | INT | Primary key |
+| id_transaksi | INT | Relasi ke tabel transaksi |
+| id_menu | INT | Relasi ke tabel menu |
 | qty | INT | Jumlah item yang dipesan |
-| subtotal | INT | Hasil harga dikali qty |
+| subtotal | INT | Harga x qty |
 
 ---
 
-## REST API Endpoints
+## 5. Daftar API Endpoint
 
-Semua request dikirim ke index.php dengan query string route dan action.
+Semua permintaan dikirim ke `index.php` dengan format:
 
-Format URL: index.php?route={route}&action={action}
-
-Semua respons menggunakan format JSON:
-
-```json
-{ "success": true, "message": "keterangan", "data": {} }
+```
+index.php?route=NAMA_ROUTE&action=NAMA_AKSI
 ```
 
-### Auth (route=auth)
+Semua respons selalu dalam format JSON:
 
-| Action | Method | Akses | Keterangan |
-|---|---|---|---|
-| login | POST | Publik | Login dengan username dan password |
-| logout | GET | Login | Hapus sesi, redirect ke login |
-| check | GET | Publik | Cek apakah sesi sedang aktif |
+```json
+{ "success": true, "message": "...", "data": { ... } }
+```
 
-### Menu (route=menu)
+Keterangan kolom Akses: **Publik** = siapa saja bisa akses, **Login** = harus sudah login, **Admin** = harus login sebagai admin.
 
-| Action | Method | Akses | Keterangan |
-|---|---|---|---|
-| list | GET | Login | Daftar semua menu, opsional filter dengan ?kategori=id |
-| detail | GET | Login | Detail satu menu dengan ?id=x |
-| create | POST | Admin | Tambah menu baru, mendukung upload gambar |
-| update | POST | Admin | Ubah data menu, mendukung ganti atau hapus gambar |
-| delete | POST | Admin | Hapus menu beserta file gambarnya dari server |
-
-### Kategori (route=kategori)
-
-| Action | Method | Akses | Keterangan |
-|---|---|---|---|
-| list | GET | Login | Daftar semua kategori |
-| create | POST | Admin | Tambah kategori baru |
-| update | POST | Admin | Ubah nama kategori |
-| delete | POST | Admin | Hapus kategori, ditolak jika masih ada menu di dalamnya |
-
-### Transaksi (route=transaksi)
-
-| Action | Method | Akses | Keterangan |
-|---|---|---|---|
-| simpan | POST | Login | Simpan transaksi baru dan kurangi stok secara atomik |
-| riwayat | GET | Login | Daftar transaksi, opsional ?limit=n, default 50 |
-| detail | GET | Login | Detail item dalam satu transaksi dengan ?id=x |
-
-### User dan Kasir (route=user)
-
-| Action | Method | Akses | Keterangan |
-|---|---|---|---|
-| list | GET | Admin | Daftar semua user |
-| kasir-list | GET | Admin | Daftar kasir beserta statistik transaksi dan omset |
-| detail | GET | Admin | Detail satu user dengan ?id=x |
-| create | POST | Admin | Tambah user baru, validasi username unik |
-| update | POST | Admin | Ubah nama, username, dan role user |
-| toggle | POST | Admin | Aktifkan atau nonaktifkan akun kasir |
-| reset-password | POST | Admin | Reset password kasir dengan password baru |
-| delete | POST | Admin | Hapus user, ditolak jika sudah memiliki riwayat transaksi |
+| Route | Action | Method | Akses | Keterangan |
+|---|---|---|---|---|
+| auth | login | POST | Publik | Masuk ke sistem |
+| auth | logout | GET | Login | Keluar dari sistem |
+| auth | check | GET | Publik | Cek apakah sudah login |
+| menu | list | GET | Login | Ambil semua menu |
+| menu | detail | GET | Login | Detail satu menu (?id=x) |
+| menu | create | POST | Admin | Tambah menu baru |
+| menu | update | POST | Admin | Edit menu |
+| menu | delete | POST | Admin | Hapus menu |
+| kategori | list | GET | Login | Ambil semua kategori |
+| kategori | create | POST | Admin | Tambah kategori |
+| kategori | update | POST | Admin | Edit kategori |
+| kategori | delete | POST | Admin | Hapus kategori |
+| transaksi | simpan | POST | Login | Simpan transaksi baru |
+| transaksi | riwayat | GET | Login | Daftar semua transaksi |
+| transaksi | detail | GET | Login | Detail item transaksi (?id=x) |
+| user | kasir-list | GET | Admin | Daftar kasir + statistik |
+| user | create | POST | Admin | Tambah akun kasir |
+| user | update | POST | Admin | Edit data kasir |
+| user | toggle | POST | Admin | Aktifkan / nonaktifkan kasir |
+| user | reset-password | POST | Admin | Reset password kasir |
+| user | delete | POST | Admin | Hapus akun kasir |
 
 ---
 
-## Fitur Keamanan
+## 6. Fitur Keamanan
 
-| Fitur | Implementasi |
+| Ancaman | Cara Penanganan |
 |---|---|
-| SQL Injection Prevention | Seluruh query menggunakan PDO Prepared Statements dengan parameter binding |
-| Password Hashing | Bcrypt via password_hash() dengan cost factor 12 |
-| Session Hijacking Prevention | session_regenerate_id(true) dipanggil setiap login berhasil |
-| Session Cookie Security | httponly=true dan samesite=Lax untuk mencegah akses JavaScript ke cookie |
-| Role-Based Access Control | Setiap controller memvalidasi sesi dan role sebelum eksekusi |
-| XSS Prevention | Input teks disanitasi dengan htmlspecialchars() dan strip_tags() |
-| Upload Security | Validasi ekstensi, ukuran maksimal 2MB, verifikasi getimagesize(), nama file di-random |
-| Upload Execution Block | File .htaccess di folder uploads menonaktifkan eksekusi PHP |
-| Account Status Check | Login ditolak dengan pesan informatif jika akun dinonaktifkan |
-| Self-Protection | Admin tidak bisa menonaktifkan atau menghapus akun dirinya sendiri |
-| Concurrent Transaction Safety | Nomor transaksi digenerate dalam database transaction dengan SELECT FOR UPDATE |
+| SQL Injection | Semua query menggunakan Prepared Statement (PDO), input tidak langsung digabung ke query |
+| Password dicuri | Password dienkripsi dengan Bcrypt sebelum disimpan, tidak bisa dibaca balik |
+| Session hijacking | ID sesi diganti baru setiap kali login berhasil (`session_regenerate_id`) |
+| Cookie dicuri via JS | Cookie sesi diset `httponly=true` sehingga tidak bisa diakses JavaScript |
+| Akses tidak sah | Setiap endpoint admin memeriksa role pengguna sebelum dijalankan |
+| XSS (input berbahaya) | Semua input teks disanitasi sebelum disimpan ke database |
+| File berbahaya diunggah | Upload divalidasi: ekstensi, ukuran maks. 2MB, dan konten gambar diperiksa |
+| File PHP di folder upload | File `.htaccess` memblokir eksekusi PHP di folder `uploads/` |
+| Akun bermasalah login | Akun yang dinonaktifkan admin tidak bisa login, muncul pesan penjelasan |
+| Admin menonaktifkan diri | Sistem mencegah admin menonaktifkan atau menghapus akun miliknya sendiri |
+| Transaksi bersamaan | Nomor transaksi digenerate di dalam DB transaction dengan kunci baris (`SELECT FOR UPDATE`) |
 
 ---
 
-## Cara Setup
+## 7. Cara Menjalankan
 
-### 1. Persiapan Server
+### Prasyarat
 
-Pastikan XAMPP sudah terinstal dan layanan Apache serta MySQL sudah berjalan.
+- XAMPP terinstal (Apache + MySQL aktif)
+- Browser modern (Chrome, Firefox, Edge)
 
-### 2. Letakkan Proyek
+### Langkah Setup
 
-Salin seluruh folder proyek ke direktori web server:
+**Langkah 1 — Salin Proyek**
+
+Letakkan folder proyek di dalam direktori XAMPP:
 
 ```
 C:\xampp\htdocs\TTS_Asdos\
 ```
 
-### 3. Import Database
+**Langkah 2 — Import Database**
 
-1. Buka http://localhost/phpmyadmin di browser
-2. Pilih menu Import di bagian atas
-3. Klik Pilih File dan pilih sql/kasirrestoran.sql
-4. Klik Go untuk mulai import
+1. Buka `http://localhost/phpmyadmin`
+2. Pilih tab **Import**
+3. Pilih file `sql/kasirrestoran.sql`
+4. Klik **Go**
 
-Skrip SQL akan membuat database, semua tabel, dan mengisi data awal secara otomatis.
+Database beserta semua tabel dan data awal akan terbentuk otomatis.
 
-### 4. Sesuaikan Konfigurasi (Jika Perlu)
+**Langkah 3 — Sesuaikan Konfigurasi (jika perlu)**
 
-Buka config/database.php dan sesuaikan jika konfigurasi MySQL berbeda dari default XAMPP:
+Buka `config/database.php`. Ubah password jika MySQL tidak menggunakan password kosong:
 
 ```php
 private $host     = "localhost";
 private $db_name  = "kasirrestoran";
 private $username = "root";
-private $password = "";
+private $password = "";        // ganti jika ada password MySQL
 ```
 
-### 5. Akses Aplikasi
+**Langkah 4 — Buka Aplikasi**
 
-Buka browser dan akses:
+Akses melalui browser:
 
 ```
 http://localhost/TTS_Asdos/login.php
 ```
 
----
-
-## Akun Default
-
-Akun berikut sudah tersedia setelah import database:
+### Akun Bawaan
 
 | Username | Password | Peran |
 |---|---|---|
@@ -322,39 +307,21 @@ Akun berikut sudah tersedia setelah import database:
 
 ---
 
-## Peran dan Hak Akses
+## 8. Hak Akses Pengguna
 
-### Admin (admin.php)
+### Admin (masuk ke admin.php)
 
-- Melihat ringkasan statistik: total menu, kategori, transaksi, dan omset keseluruhan
-- Kelola Menu: tambah, edit, dan hapus menu beserta foto
-- Kelola Kategori: tambah, edit, dan hapus kategori
-- Riwayat Penjualan: melihat seluruh transaksi dari semua kasir dan mencetak struk
-- Kelola Kasir: tambah kasir baru, edit data, aktifkan atau nonaktifkan akun, reset password, dan hapus akun
+- Melihat statistik ringkasan: jumlah menu, kategori, transaksi, dan total omset
+- Mengelola Menu: tambah, edit, hapus, dan upload foto menu
+- Mengelola Kategori: tambah, edit, hapus kategori
+- Melihat Riwayat Penjualan dari semua kasir dan mencetak struk
+- Mengelola Kasir: tambah akun, edit data, aktifkan/nonaktifkan, reset password, hapus akun
 
-### Kasir (kasir.php)
+### Kasir (masuk ke kasir.php)
 
 - Melihat daftar menu yang tersedia beserta stok
-- Memilih item dan jumlah untuk keranjang belanja
-- Memproses transaksi dan menghitung kembalian secara otomatis
+- Memilih item dan menentukan jumlah pesanan
+- Menginput nominal pembayaran, sistem menghitung kembalian otomatis
 - Mencetak struk setelah transaksi selesai
 
----
-
-## Catatan Teknis
-
-**Penanganan Stok pada Transaksi**
-
-Pengurangan stok dilakukan di dalam database transaction. Apabila salah satu item memiliki stok tidak mencukupi, seluruh transaksi dibatalkan (rollback) dan tidak ada data yang tersimpan ke database.
-
-**Format Nomor Transaksi**
-
-Nomor transaksi digenerate otomatis dengan format TRX-YYYYMMDD-NNN. Contoh: TRX-20261025-001. Nomor urut dimulai dari 001 setiap hari.
-
-**Upload Gambar Menu**
-
-File gambar disimpan di folder uploads dengan nama gabungan timestamp dan 4 byte random. Contoh: menu_1729870000_a3f2bc01.jpg. File gambar lama dihapus otomatis dari server saat menu diedit atau dihapus.
-
-**Akun Nonaktif**
-
-Ketika admin menonaktifkan akun kasir, kasir tersebut tidak dapat login. Halaman login menampilkan pesan khusus yang menginformasikan bahwa akun dinonaktifkan dan kasir perlu menghubungi administrator untuk mengaktifkan kembali.
+> Catatan: Kasir yang dinonaktifkan oleh admin tidak bisa login. Saat mencoba login, akan muncul pesan yang meminta kasir menghubungi administrator.
