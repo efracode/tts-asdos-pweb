@@ -635,11 +635,6 @@ function renderMenu(data = daftarMenu) {
         <tr class="hover:bg-slate-50/80 transition-colors">
             <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shrink-0">
-                        ${m.gambar
-                            ? `<img src="uploads/${m.gambar}?t=${Date.now()}" class="w-full h-full object-cover">`
-                            : '<i class="fa-solid fa-utensils text-slate-300 text-lg"></i>'}
-                    </div>
                     <span class="font-bold text-slate-900">${m.nama_menu}</span>
                 </div>
             </td>
@@ -760,39 +755,6 @@ function filterRiwayatTabel() {
         r.status.toLowerCase().includes(q)
     );
     renderRiwayat(filtered);
-}
-
-// --- INTERAKTIF UPLOAD GAMBAR DENGAN PREVIEW & INDIKATOR UKURAN ---
-function handleFilePilih(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const maxUkuran = 2 * 1024 * 1024; // 2MB
-    if (file.size > maxUkuran) {
-        tampilkanToast('Ukuran gambar melebihi 2MB! Silakan pilih file yang lebih kecil.', 'error');
-        input.value = '';
-        return;
-    }
-
-    const ekstensi = file.name.split('.').pop().toLowerCase();
-    if (!['jpg', 'jpeg', 'png', 'webp'].includes(ekstensi)) {
-        tampilkanToast('Format file harus JPG, JPEG, PNG, atau WEBP.', 'error');
-        input.value = '';
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('imgPreview').src = e.target.result;
-        document.getElementById('namaFilePreview').innerText = file.name;
-        const sizeFormatted = file.size >= 1024 * 1024
-            ? (file.size / (1024 * 1024)).toFixed(2) + ' MB'
-            : (file.size / 1024).toFixed(1) + ' KB';
-        document.getElementById('ukuranFilePreview').innerText = sizeFormatted + ' / Maks 2MB';
-        document.getElementById('previewContainer').classList.remove('hidden');
-        document.getElementById('dropzonePrompt').classList.add('hidden');
-    };
-    reader.readAsDataURL(file);
 }
 
 // --- MODAL MENU LOGIC & ANTI-SPAM ---

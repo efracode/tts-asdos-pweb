@@ -8,13 +8,12 @@ class Menu {
     public $nama_menu;
     public $harga;
     public $stok;
-
     public function __construct($db) {
         $this->conn = $db;
     }
 
     public function getAll() {
-        $stmt = $this->conn->prepare("SELECT m.id, m.nama_menu, m.harga, m.stok, k.nama_kategori
+        $stmt = $this->conn->prepare("SELECT m.id, m.nama_menu, m.harga, m.stok, m.gambar, k.nama_kategori
                                       FROM " . $this->table . " m
                                       LEFT JOIN kategori k ON m.id_kategori = k.id
                                       ORDER BY m.id DESC");
@@ -23,14 +22,20 @@ class Menu {
     }
 
     public function getByKategori($id_kategori) {
-        $stmt = $this->conn->prepare("SELECT * FROM " . $this->table . " WHERE id_kategori = :id_kategori ORDER BY nama_menu ASC");
+        $stmt = $this->conn->prepare("SELECT id, id_kategori, nama_menu, harga, stok
+                                      FROM " . $this->table . "
+                                      WHERE id_kategori = :id_kategori
+                                      ORDER BY nama_menu ASC");
         $stmt->bindParam(":id_kategori", $id_kategori, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     }
 
     public function getById($id) {
-        $stmt = $this->conn->prepare("SELECT * FROM " . $this->table . " WHERE id = :id LIMIT 1");
+        $stmt = $this->conn->prepare("SELECT id, id_kategori, nama_menu, harga, stok
+                                      FROM " . $this->table . "
+                                      WHERE id = :id
+                                      LIMIT 1");
         $stmt->bindParam(":id", $id, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch();

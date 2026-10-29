@@ -61,16 +61,13 @@ class MenuController {
         $error = $this->validasi();
         if ($error) json_response(['success' => false, 'message' => $error], 422);
 
-
         $this->menu->id_kategori = (int) $_POST['id_kategori'];
         $this->menu->nama_menu   = trim($_POST['nama_menu']);
         $this->menu->harga       = (int) $_POST['harga'];
         $this->menu->stok        = (int) $_POST['stok'];
+
         if ($this->menu->update($id)) {
             json_response(['success' => true, 'message' => 'Menu berhasil diubah']);
-        }
-        if ($baru !== null && file_exists(__DIR__ . '/../uploads/' . $baru)) {
-            @unlink(__DIR__ . '/../uploads/' . $baru);
         }
         json_response(['success' => false, 'message' => 'Gagal mengubah menu'], 500);
     }
@@ -79,8 +76,9 @@ class MenuController {
         $this->wajibPost();
         $this->wajibAdmin();
         $id   = (int) ($_POST['id'] ?? 0);
-        $lama = $this->menu->getById($id);
-        if (!$lama) json_response(['success' => false, 'message' => 'Menu tidak ditemukan'], 404);
+        if (!$this->menu->getById($id)) {
+            json_response(['success' => false, 'message' => 'Menu tidak ditemukan'], 404);
+        }
 
         if ($this->menu->delete($id)) {
             json_response(['success' => true, 'message' => 'Menu berhasil dihapus']);
