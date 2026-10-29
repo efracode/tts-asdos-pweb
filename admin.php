@@ -346,44 +346,6 @@ $user = $_SESSION['user'];
                        class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all">
             </div>
 
-            <!-- Upload Gambar Interaktif dengan Live Preview & Ukuran File -->
-            <div class="space-y-2">
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Foto Menu <span class="text-slate-400 text-[11px] font-normal normal-case">(Opsional - JPG, PNG, WEBP, Maks. 2MB)</span>
-                </label>
-
-                <div class="border-2 border-dashed border-slate-300 hover:border-orange-400 rounded-2xl p-4 transition-colors text-center relative bg-slate-50/50">
-                    <input type="file" name="gambar" id="inputGambar" accept="image/jpeg,image/png,image/webp"
-                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFilePilih(this)">
-
-                    <div id="dropzonePrompt" class="space-y-1.5 py-2">
-                        <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400"></i>
-                        <p class="text-xs font-medium text-slate-700">Klik atau geser file gambar ke sini</p>
-                        <p class="text-[11px] text-slate-400">Ukuran maksimal file 2MB</p>
-                    </div>
-
-                    <!-- Live Preview Box -->
-                    <div id="previewContainer" class="hidden flex items-center justify-between gap-3 p-2 bg-white rounded-xl border border-slate-200 text-left relative z-20">
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <img id="imgPreview" src="" alt="Preview" class="w-12 h-12 rounded-lg object-cover border border-slate-200 shrink-0">
-                            <div class="overflow-hidden">
-                                <span id="namaFilePreview" class="text-xs font-semibold text-slate-800 block truncate"></span>
-                                <span id="ukuranFilePreview" class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 mt-0.5"></span>
-                            </div>
-                        </div>
-                        <button type="button" onclick="resetInputGambar()" class="text-rose-500 hover:text-rose-600 p-2 text-sm" title="Hapus foto ini">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Opsi Hapus Gambar Lama (hanya muncul saat edit jika sudah ada foto) -->
-                <div id="wrapperHapusGambarLama" class="hidden flex items-center gap-2 pt-1">
-                    <input type="checkbox" name="hapus_gambar" id="hapusGambarLama" value="1" class="rounded text-orange-500 focus:ring-orange-400 w-4 h-4">
-                    <label for="hapusGambarLama" class="text-xs text-rose-600 font-medium cursor-pointer">Hapus foto lama dan jadikan tanpa gambar</label>
-                </div>
-            </div>
-
             <div class="flex gap-2.5 pt-3 border-t border-slate-100">
                 <button type="button" onclick="tutupModalMenu()" class="flex-1 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 py-2.5 text-xs lg:text-sm font-semibold transition-all">Batal</button>
                 <button type="submit" id="btnSubmitMenu" class="flex-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-white py-2.5 text-xs lg:text-sm font-bold transition-all shadow-sm shadow-orange-500/25 flex items-center justify-center gap-2">
@@ -833,21 +795,13 @@ function handleFilePilih(input) {
     reader.readAsDataURL(file);
 }
 
-function resetInputGambar() {
-    document.getElementById('inputGambar').value = '';
-    document.getElementById('previewContainer').classList.add('hidden');
-    document.getElementById('dropzonePrompt').classList.remove('hidden');
-}
-
 // --- MODAL MENU LOGIC & ANTI-SPAM ---
 function bukaModalMenu(id = null) {
     document.getElementById('formMenu').reset();
     document.getElementById('menuId').value = '';
     document.getElementById('pesanMenu').classList.add('hidden');
-    resetInputGambar();
     renderSelectKategori();
 
-    const wrapperHapus = document.getElementById('wrapperHapusGambarLama');
     if (id !== null) {
         const m = daftarMenu.find(x => x.id == id);
         document.getElementById('judulModalMenu').innerText = 'Edit Menu: ' + m.nama_menu;
@@ -857,19 +811,8 @@ function bukaModalMenu(id = null) {
         document.getElementById('menuHarga').value = m.harga;
         document.getElementById('menuStok').value = m.stok;
 
-        if (m.gambar) {
-            document.getElementById('imgPreview').src = 'uploads/' + m.gambar + '?t=' + Date.now();
-            document.getElementById('namaFilePreview').innerText = 'Gambar saat ini: ' + m.gambar;
-            document.getElementById('ukuranFilePreview').innerText = 'Tersimpan';
-            document.getElementById('previewContainer').classList.remove('hidden');
-            document.getElementById('dropzonePrompt').classList.add('hidden');
-            wrapperHapus.classList.remove('hidden');
-        } else {
-            wrapperHapus.classList.add('hidden');
-        }
     } else {
         document.getElementById('judulModalMenu').innerText = 'Tambah Menu Baru';
-        wrapperHapus.classList.add('hidden');
     }
     document.getElementById('modalMenu').classList.remove('hidden');
 }
