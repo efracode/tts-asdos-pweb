@@ -13,7 +13,7 @@ class Menu {
     }
 
     public function getAll() {
-        $stmt = $this->conn->prepare("SELECT m.id, m.nama_menu, m.harga, m.stok, m.gambar, k.nama_kategori
+        $stmt = $this->conn->prepare("SELECT m.id, m.nama_menu, m.harga, m.stok, k.nama_kategori
                                       FROM " . $this->table . " m
                                       LEFT JOIN kategori k ON m.id_kategori = k.id
                                       ORDER BY m.id DESC");
