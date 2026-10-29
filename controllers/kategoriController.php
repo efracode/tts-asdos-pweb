@@ -17,6 +17,7 @@ class KategoriController {
     }
 
     private function list(): void {
+        $this->wajibLogin();
         json_response(['success' => true, 'data' => $this->kategori->getAll()]);
     }
 
@@ -65,5 +66,11 @@ class KategoriController {
             json_response(['success' => false, 'message' => 'Akses ditolak. Khusus admin'], 403);
         }
         return $_SESSION['user'];
+    }
+
+    private function wajibLogin(): void {
+        if (!isset($_SESSION['user'])) {
+            json_response(['success' => false, 'message' => 'Silakan login dulu'], 401);
+        }
     }
 }

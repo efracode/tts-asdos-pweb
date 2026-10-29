@@ -22,6 +22,7 @@ class MenuController {
     }
 
     private function list(): void {
+        $this->wajibLogin();
         $data = isset($_GET['kategori'])
             ? $this->menu->getByKategori((int) $_GET['kategori'])
             : $this->menu->getAll();
@@ -29,6 +30,7 @@ class MenuController {
     }
 
     private function detail(): void {
+        $this->wajibLogin();
         $data = $this->menu->getById((int) ($_GET['id'] ?? 0));
         if (!$data) json_response(['success' => false, 'message' => 'Menu tidak ditemukan'], 404);
         json_response(['success' => true, 'data' => $data]);
@@ -110,6 +112,12 @@ class MenuController {
     private function wajibPost(): void {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             json_response(['success' => false, 'message' => 'Method harus POST'], 405);
+        }
+    }
+
+    private function wajibLogin(): void {
+        if (!isset($_SESSION['user'])) {
+            json_response(['success' => false, 'message' => 'Silakan login dulu'], 401);
         }
     }
 

@@ -1,132 +1,168 @@
 <?php
 class Transaksi {
-    private $conn;
-    private $table = "transaksi";
+    private PDO $conn;
 
-    public function __construct($db) {
+    public function __construct(PDO $db) {
         $this->conn = $db;
     }
 
-    // FOR UPDATE mengunci baris terakhir agar nomor tidak kembar saat transaksi bersamaan
-    public function generateNoTransaksi() {
-        $prefix = "TRX-" . date("Ymd") . "-";
-        $like   = $prefix . "%";
-
-        $stmt = $this->conn->prepare("SELECT no_transaksi FROM " . $this->table . "
-                                      WHERE no_transaksi LIKE :prefix
-                                      ORDER BY id DESC LIMIT 1 FOR UPDATE");
-        $stmt->bindParam(":prefix", $like);
-        $stmt->execute();
-
-        $last = $stmt->fetch();
-        $urut = 1;
-        if ($last) {
-            $parts = explode("-", $last['no_transaksi']);
-            $urut  = (int) end($parts) + 1;
-        }
-        return $prefix . str_pad($urut, 3, "0", STR_PAD_LEFT);
-    }
-
-    private function validasiItems($items) {
-        if (empty($items) || !is_array($items)) {
-            throw new Exception("Item transaksi tidak boleh kosong.");
-        }
-        foreach ($items as $item) {
-            if (!isset($item['id_menu'], $item['harga'], $item['qty'])
-                || !is_numeric($item['harga']) || !is_numeric($item['qty'])
-                || $item['qty'] < 1 || $item['harga'] < 0) {
-                throw new Exception("Format item transaksi tidak valid.");
-            }
-        }
-    }
-
-    public function simpanTransaksi($id_user, $items, $bayar) {
+    public function simpanTransaksi(int $idUser, array $items, int $bayar): array {
         try {
-            $this->validasiItems($items);
+            $items = $this->siapkanItems($items);
             $this->conn->beginTransaction();
 
-            $total = 0;
-            foreach ($items as $item) {
-                $total += $item['harga'] * $item['qty'];
-            }
+            $total = $this->hitungTotal($items);
             if ($bayar < $total) {
-                throw new Exception("Uang pembayaran kurang dari total belanja.");
+                throw new RuntimeException('Uang pembayaran kurang dari total belanja.');
             }
 
-            $kembalian    = $bayar - $total;
-            $no_transaksi = $this->generateNoTransaksi();
-
-            $stmt = $this->conn->prepare("INSERT INTO " . $this->table . "
-                                          (no_transaksi, id_user, total, bayar, kembalian, status)
-                                          VALUES (:no, :user, :total, :bayar, :kembalian, 'selesai')");
-            $stmt->bindParam(":no", $no_transaksi);
-            $stmt->bindParam(":user", $id_user, PDO::PARAM_INT);
-            $stmt->bindParam(":total", $total, PDO::PARAM_INT);
-            $stmt->bindParam(":bayar", $bayar, PDO::PARAM_INT);
-            $stmt->bindParam(":kembalian", $kembalian, PDO::PARAM_INT);
-            if (!$stmt->execute()) {
-                throw new Exception("Gagal menyimpan data transaksi utama.");
-            }
-            $id_transaksi = $this->conn->lastInsertId();
-
-            $stmt_detail = $this->conn->prepare("INSERT INTO detail_transaksi
-                                                 (id_transaksi, id_menu, qty, subtotal)
-                                                 VALUES (:trx, :menu, :qty, :sub)");
-            $stmt_stok = $this->conn->prepare("UPDATE menu SET stok = stok - :qty
-                                               WHERE id = :id AND stok >= :min_qty");
-
-            foreach ($items as $item) {
-                $subtotal = $item['harga'] * $item['qty'];
-
-                $stmt_detail->bindParam(":trx", $id_transaksi, PDO::PARAM_INT);
-                $stmt_detail->bindParam(":menu", $item['id_menu'], PDO::PARAM_INT);
-                $stmt_detail->bindParam(":qty", $item['qty'], PDO::PARAM_INT);
-                $stmt_detail->bindParam(":sub", $subtotal, PDO::PARAM_INT);
-                if (!$stmt_detail->execute()) {
-                    throw new Exception("Gagal menyimpan detail transaksi.");
-                }
-
-                $stmt_stok->bindParam(":qty", $item['qty'], PDO::PARAM_INT);
-                $stmt_stok->bindParam(":id", $item['id_menu'], PDO::PARAM_INT);
-                $stmt_stok->bindParam(":min_qty", $item['qty'], PDO::PARAM_INT);
-                $stmt_stok->execute();
-                if ($stmt_stok->rowCount() === 0) {
-                    throw new Exception("Stok untuk menu ID " . $item['id_menu'] . " tidak mencukupi.");
-                }
-            }
+            $nomor = $this->nomorTransaksi();
+            $idTransaksi = $this->simpanHeader($nomor, $idUser, $total, $bayar);
+            $this->simpanDetailDanKurangiStok($idTransaksi, $items);
 
             $this->conn->commit();
             return [
-                "success"      => true,
-                "no_transaksi" => $no_transaksi,
-                "total"        => $total,
-                "kembalian"    => $kembalian
+                'success' => true,
+                'no_transaksi' => $nomor,
+                'total' => $total,
+                'kembalian' => $bayar - $total,
             ];
-
-        } catch (Exception $e) {
+        } catch (Throwable $error) {
             if ($this->conn->inTransaction()) {
                 $this->conn->rollBack();
             }
-            return ["success" => false, "message" => $e->getMessage()];
+            return ['success' => false, 'message' => $error->getMessage()];
         }
     }
 
-    public function getRiwayat($limit = 50) {
-        $stmt = $this->conn->prepare("SELECT t.*, u.nama AS nama_kasir
-                                      FROM " . $this->table . " t
-                                      JOIN users u ON t.id_user = u.id
-                                      ORDER BY t.tanggal DESC LIMIT :lim");
-        $stmt->bindParam(":lim", $limit, PDO::PARAM_INT);
+    private function siapkanItems(array $items): array {
+        if (!$items) {
+            throw new InvalidArgumentException('Item transaksi tidak boleh kosong.');
+        }
+
+        $jumlah = [];
+        foreach ($items as $item) {
+            $idMenu = filter_var($item['id_menu'] ?? null, FILTER_VALIDATE_INT);
+            $qty = filter_var($item['qty'] ?? null, FILTER_VALIDATE_INT);
+
+            if (!$idMenu || !$qty || $qty < 1) {
+                throw new InvalidArgumentException('Format item transaksi tidak valid.');
+            }
+            $jumlah[$idMenu] = ($jumlah[$idMenu] ?? 0) + $qty;
+        }
+
+        $hasil = [];
+        $ambilMenu = $this->conn->prepare(
+            'SELECT id, nama_menu, harga, stok FROM menu WHERE id = :id FOR UPDATE'
+        );
+
+        foreach ($jumlah as $idMenu => $qty) {
+            $ambilMenu->bindValue(':id', $idMenu, PDO::PARAM_INT);
+            $ambilMenu->execute();
+            $menu = $ambilMenu->fetch();
+
+            if (!$menu) {
+                throw new InvalidArgumentException("Menu ID {$idMenu} tidak ditemukan.");
+            }
+            if ($menu['stok'] < $qty) {
+                throw new RuntimeException("Stok untuk {$menu['nama_menu']} tidak mencukupi.");
+            }
+
+            $hasil[] = [
+                'id_menu' => $idMenu,
+                'harga' => (int) $menu['harga'],
+                'qty' => $qty,
+            ];
+        }
+        return $hasil;
+    }
+
+    private function hitungTotal(array $items): int {
+        $total = 0;
+        foreach ($items as $item) {
+            $total += $item['harga'] * $item['qty'];
+        }
+        return $total;
+    }
+
+    private function nomorTransaksi(): string {
+        $prefix = 'TRX-' . date('Ymd') . '-';
+        $stmt = $this->conn->prepare(
+            "SELECT no_transaksi FROM transaksi
+             WHERE no_transaksi LIKE :prefix
+             ORDER BY id DESC LIMIT 1 FOR UPDATE"
+        );
+        $stmt->bindValue(':prefix', $prefix . '%');
+        $stmt->execute();
+
+        $terakhir = $stmt->fetchColumn();
+        $urutan = $terakhir ? ((int) substr($terakhir, -3)) + 1 : 1;
+        return $prefix . str_pad((string) $urutan, 3, '0', STR_PAD_LEFT);
+    }
+
+    private function simpanHeader(string $nomor, int $idUser, int $total, int $bayar): int {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO transaksi
+             (no_transaksi, id_user, total, bayar, kembalian, status)
+             VALUES (:nomor, :user, :total, :bayar, :kembalian, 'selesai')"
+        );
+        $stmt->execute([
+            ':nomor' => $nomor,
+            ':user' => $idUser,
+            ':total' => $total,
+            ':bayar' => $bayar,
+            ':kembalian' => $bayar - $total,
+        ]);
+        return (int) $this->conn->lastInsertId();
+    }
+
+    private function simpanDetailDanKurangiStok(int $idTransaksi, array $items): void {
+        $detail = $this->conn->prepare(
+            'INSERT INTO detail_transaksi (id_transaksi, id_menu, qty, subtotal)
+             VALUES (:transaksi, :menu, :qty, :subtotal)'
+        );
+        $stok = $this->conn->prepare(
+            'UPDATE menu SET stok = stok - :qty WHERE id = :menu AND stok >= :qty'
+        );
+
+        foreach ($items as $item) {
+            $detail->execute([
+                ':transaksi' => $idTransaksi,
+                ':menu' => $item['id_menu'],
+                ':qty' => $item['qty'],
+                ':subtotal' => $item['harga'] * $item['qty'],
+            ]);
+            $stok->execute([
+                ':qty' => $item['qty'],
+                ':menu' => $item['id_menu'],
+            ]);
+        }
+    }
+
+    public function getRiwayat(int $limit = 50): array {
+        $limit = max(1, min($limit, 100));
+        $stmt = $this->conn->prepare(
+            "SELECT t.id, t.no_transaksi, t.total, t.bayar, t.kembalian,
+                    t.status, t.tanggal, u.nama AS nama_kasir
+             FROM transaksi t
+             JOIN users u ON u.id = t.id_user
+             ORDER BY t.tanggal DESC
+             LIMIT :limit"
+        );
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    public function getDetail($id_transaksi) {
-        $stmt = $this->conn->prepare("SELECT dt.*, m.nama_menu, m.harga
-                                      FROM detail_transaksi dt
-                                      JOIN menu m ON dt.id_menu = m.id
-                                      WHERE dt.id_transaksi = :id");
-        $stmt->bindParam(":id", $id_transaksi, PDO::PARAM_INT);
+    public function getDetail(int $idTransaksi): array {
+        $stmt = $this->conn->prepare(
+            "SELECT d.id_menu, d.qty, d.subtotal, m.nama_menu, m.harga
+             FROM detail_transaksi d
+             JOIN menu m ON m.id = d.id_menu
+             WHERE d.id_transaksi = :id
+             ORDER BY d.id"
+        );
+        $stmt->bindValue(':id', $idTransaksi, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     }
