@@ -315,10 +315,8 @@ function renderMenu() {
         <button onclick="tambahKeranjang(${m.id})" ${habis ? 'disabled' : ''}
             class="bg-white rounded-2xl p-3.5 text-left border border-slate-200/80 shadow-sm hover:shadow-md hover:border-orange-300 transition-all flex flex-col justify-between group disabled:opacity-50 disabled:pointer-events-none relative overflow-hidden">
             <div>
-                <div class="h-28 rounded-xl bg-slate-100 flex items-center justify-center mb-3 overflow-hidden border border-slate-200/70 relative">
-                    ${m.gambar
-                        ? `<img src="uploads/${m.gambar}?t=${Date.now()}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">`
-                        : '<i class="fa-solid fa-utensils text-3xl text-slate-300"></i>'}
+                <div class="h-28 rounded-xl bg-slate-100 flex items-center justify-center mb-3 border border-slate-200/70 relative">
+                    <i class="fa-solid fa-utensils text-3xl text-slate-300"></i>
                     <span class="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold ${habis ? 'bg-rose-600 text-white' : (m.stok <= 5 ? 'bg-amber-500 text-white' : 'bg-slate-900/75 text-white backdrop-blur-xs')}">
                         ${habis ? 'Habis' : 'Stok ' + m.stok}
                     </span>

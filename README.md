@@ -65,7 +65,7 @@ TTS_Asdos/
 |
 |-- models/                   # Kelas yang berinteraksi langsung dengan database
 |   |-- user.php              # Data pengguna (login, tambah, edit, nonaktifkan)
-|   |-- menu.php              # Data menu (tambah, edit, hapus, upload foto)
+|   |-- menu.php              # Data menu (tambah, edit, hapus)
 |   |-- kategori.php          # Data kategori menu
 |   |-- transaksi.php         # Data transaksi (simpan, riwayat, detail, stok)
 |
@@ -79,8 +79,6 @@ TTS_Asdos/
 |-- sql/
 |   |-- kasirrestoran.sql     # File SQL: membuat tabel dan mengisi data awal
 |
-|-- uploads/                  # Tempat menyimpan foto menu yang diunggah
-|   |-- .htaccess             # Keamanan: mencegah file di sini dieksekusi sebagai PHP
 ```
 
 ---
@@ -163,7 +161,6 @@ kategori ──── menu                                         menu
 | nama_menu | VARCHAR(100) | Nama item menu |
 | harga | INT | Harga dalam Rupiah |
 | stok | INT | Jumlah porsi tersedia |
-| gambar | VARCHAR(255) | Nama file foto, bisa kosong (NULL) |
 | created_at | TIMESTAMP | Diisi otomatis |
 
 ### Tabel: transaksi
@@ -245,8 +242,6 @@ Keterangan kolom Akses: **Publik** = siapa saja bisa akses, **Login** = harus su
 | Cookie dicuri via JS | Cookie sesi diset `httponly=true` sehingga tidak bisa diakses JavaScript |
 | Akses tidak sah | Setiap endpoint admin memeriksa role pengguna sebelum dijalankan |
 | XSS (input berbahaya) | Semua input teks disanitasi sebelum disimpan ke database |
-| File berbahaya diunggah | Upload divalidasi: ekstensi, ukuran maks. 2MB, dan konten gambar diperiksa |
-| File PHP di folder upload | File `.htaccess` memblokir eksekusi PHP di folder `uploads/` |
 | Akun bermasalah login | Akun yang dinonaktifkan admin tidak bisa login, muncul pesan penjelasan |
 | Admin menonaktifkan diri | Sistem mencegah admin menonaktifkan atau menghapus akun miliknya sendiri |
 | Transaksi bersamaan | Nomor transaksi digenerate di dalam DB transaction dengan kunci baris (`SELECT FOR UPDATE`) |
@@ -312,7 +307,7 @@ http://localhost/TTS_Asdos/login.php
 ### Admin (masuk ke admin.php)
 
 - Melihat statistik ringkasan: jumlah menu, kategori, transaksi, dan total omset
-- Mengelola Menu: tambah, edit, hapus, dan upload foto menu
+- Mengelola Menu: tambah, edit, dan hapus menu
 - Mengelola Kategori: tambah, edit, hapus kategori
 - Melihat Riwayat Penjualan dari semua kasir dan mencetak struk
 - Mengelola Kasir: tambah akun, edit data, aktifkan/nonaktifkan, reset password, hapus akun

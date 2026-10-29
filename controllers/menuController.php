@@ -40,19 +40,13 @@ class MenuController {
         $error = $this->validasi();
         if ($error) json_response(['success' => false, 'message' => $error], 422);
 
-        $gambar = $this->uploadGambar();
-
         $this->menu->id_kategori = (int) $_POST['id_kategori'];
         $this->menu->nama_menu   = trim($_POST['nama_menu']);
         $this->menu->harga       = (int) $_POST['harga'];
         $this->menu->stok        = (int) $_POST['stok'];
-        $this->menu->gambar      = $gambar;
 
         if ($this->menu->create()) {
             json_response(['success' => true, 'message' => 'Menu berhasil ditambah'], 201);
-        }
-        if ($gambar && file_exists(__DIR__ . '/../uploads/' . $gambar)) {
-            @unlink(__DIR__ . '/../uploads/' . $gambar);
         }
         json_response(['success' => false, 'message' => 'Gagal menambah menu'], 500);
     }
@@ -67,33 +61,13 @@ class MenuController {
         $error = $this->validasi();
         if ($error) json_response(['success' => false, 'message' => $error], 422);
 
-        $gambar = $lama['gambar'];
-        $baru   = $this->uploadGambar();
-        $hapusGambar = !empty($_POST['hapus_gambar']) && $_POST['hapus_gambar'] === '1';
-
-        if ($baru !== null) {
-            if ($gambar && file_exists(__DIR__ . '/../uploads/' . $gambar)) {
-                @unlink(__DIR__ . '/../uploads/' . $gambar);
-            }
-            $gambar = $baru;
-        } elseif ($hapusGambar) {
-            if ($gambar && file_exists(__DIR__ . '/../uploads/' . $gambar)) {
-                @unlink(__DIR__ . '/../uploads/' . $gambar);
-            }
-            $gambar = null;
-        }
-
         $this->menu->id_kategori = (int) $_POST['id_kategori'];
         $this->menu->nama_menu   = trim($_POST['nama_menu']);
         $this->menu->harga       = (int) $_POST['harga'];
         $this->menu->stok        = (int) $_POST['stok'];
-        $this->menu->gambar      = $gambar;
 
         if ($this->menu->update($id)) {
             json_response(['success' => true, 'message' => 'Menu berhasil diubah']);
-        }
-        if ($baru !== null && file_exists(__DIR__ . '/../uploads/' . $baru)) {
-            @unlink(__DIR__ . '/../uploads/' . $baru);
         }
         json_response(['success' => false, 'message' => 'Gagal mengubah menu'], 500);
     }
@@ -102,13 +76,11 @@ class MenuController {
         $this->wajibPost();
         $this->wajibAdmin();
         $id   = (int) ($_POST['id'] ?? 0);
-        $lama = $this->menu->getById($id);
-        if (!$lama) json_response(['success' => false, 'message' => 'Menu tidak ditemukan'], 404);
+        if (!$this->menu->getById($id)) {
+            json_response(['success' => false, 'message' => 'Menu tidak ditemukan'], 404);
+        }
 
         if ($this->menu->delete($id)) {
-            if ($lama['gambar'] && file_exists(__DIR__ . '/../uploads/' . $lama['gambar'])) {
-                @unlink(__DIR__ . '/../uploads/' . $lama['gambar']);
-            }
             json_response(['success' => true, 'message' => 'Menu berhasil dihapus']);
         }
         json_response(['success' => false, 'message' => 'Gagal menghapus menu'], 500);
@@ -133,32 +105,6 @@ class MenuController {
             return 'Kategori tidak valid.';
         }
         return null;
-    }
-
-    private function uploadGambar(): ?string {
-        if (empty($_FILES['gambar']['name'])) return null;
-
-        $file     = $_FILES['gambar'];
-        $ekstensi = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            json_response(['success' => false, 'message' => 'Upload gambar gagal, coba lagi.'], 422);
-        }
-        if (!in_array($ekstensi, ['jpg', 'jpeg', 'png', 'webp'], true)) {
-            json_response(['success' => false, 'message' => 'Format gambar harus jpg, jpeg, png, atau webp.'], 422);
-        }
-        if ($file['size'] > 2 * 1024 * 1024) {
-            json_response(['success' => false, 'message' => 'Ukuran gambar maksimal 2MB.'], 422);
-        }
-        if (@getimagesize($file['tmp_name']) === false) {
-            json_response(['success' => false, 'message' => 'File bukan gambar yang valid.'], 422);
-        }
-
-        $nama = 'menu_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ekstensi;
-        if (!move_uploaded_file($file['tmp_name'], __DIR__ . '/../uploads/' . $nama)) {
-            json_response(['success' => false, 'message' => 'Gagal menyimpan gambar ke server.'], 500);
-        }
-        return $nama;
     }
 
     private function wajibPost(): void {
