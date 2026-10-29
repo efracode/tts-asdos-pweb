@@ -5,13 +5,10 @@ if (session_status() === PHP_SESSION_NONE) {
         'samesite' => 'Lax',
     ]);
     session_start();
-    // Error yang lolos dari controller tetap dibalas JSON biar frontend bisa menampilkan pesannya
-set_exception_handler(function (Throwable $e) {
-    http_response_code(500);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['success' => false, 'message' => 'Kesalahan server: ' . $e->getMessage()]);
-    exit;
-});
+    // Error dari controller tetap dikirim dalam format JSON.
+    set_exception_handler(function (Throwable $e): void {
+        json_response(['success' => false, 'message' => 'Kesalahan server'], 500);
+    });
 }
 
 // Body JSON murni (fetch + Content-Type: application/json) digabung ke $_POST

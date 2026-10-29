@@ -16,15 +16,23 @@ class TransaksiController {
     }
 
     private function simpan(): void {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') json_response(['success' => false, 'message' => 'Method harus POST'], 405);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            json_response(['success' => false, 'message' => 'Method harus POST'], 405);
+        }
         $login = $this->wajibLogin();
 
-        $bayar = (int) ($_POST['bayar'] ?? 0);
+        $bayar = filter_var($_POST['bayar'] ?? null, FILTER_VALIDATE_INT);
         $items = $_POST['items'] ?? null;
-        if (is_string($items)) $items = json_decode($items, true);
+        if (is_string($items)) {
+            $items = json_decode($items, true);
+        }
 
-        if ($bayar <= 0) json_response(['success' => false, 'message' => 'Nominal bayar tidak valid'], 422);
-        if (!is_array($items)) json_response(['success' => false, 'message' => 'Format items tidak valid (harus JSON array)'], 422);
+        if ($bayar === false || $bayar <= 0) {
+            json_response(['success' => false, 'message' => 'Nominal bayar tidak valid'], 422);
+        }
+        if (!is_array($items)) {
+            json_response(['success' => false, 'message' => 'Format items harus berupa JSON array'], 422);
+        }
 
         $hasil = $this->transaksi->simpanTransaksi($login['id'], $items, $bayar);
 
@@ -40,7 +48,12 @@ class TransaksiController {
 
     private function detail(): void {
         $this->wajibLogin();
-        $data = $this->transaksi->getDetail((int) ($_GET['id'] ?? 0));
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
+        if (!$id || $id < 1) {
+            json_response(['success' => false, 'message' => 'ID transaksi tidak valid'], 422);
+        }
+
+        $data = $this->transaksi->getDetail($id);
         if (empty($data)) json_response(['success' => false, 'message' => 'Detail transaksi tidak ditemukan'], 404);
         json_response(['success' => true, 'data' => $data]);
     }

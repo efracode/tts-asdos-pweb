@@ -279,10 +279,10 @@ Database beserta semua tabel dan data awal akan terbentuk otomatis.
 Buka `config/database.php`. Ubah password jika MySQL tidak menggunakan password kosong:
 
 ```php
-private $host     = "localhost";
-private $db_name  = "kasirrestoran";
-private $username = "root";
-private $password = "";        // ganti jika ada password MySQL
+private string $host = 'localhost';
+private string $database = 'kasirrestoran';
+private string $username = 'root';
+private string $password = ''; // ganti jika ada password MySQL
 ```
 
 **Langkah 4 — Buka Aplikasi**

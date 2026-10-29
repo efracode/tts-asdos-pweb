@@ -1,25 +1,23 @@
 <?php
 class Database {
-    private $host     = "localhost";
-    private $db_name  = "kasirrestoran";
-    private $username = "root";
-    private $password = "";
-    public $conn;
+    private string $host = 'localhost';
+    private string $database = 'kasirrestoran';
+    private string $username = 'root';
+    private string $password = '';
 
-    public function getConnection() {
-        $this->conn = null;
+    public function getConnection(): PDO {
         try {
-            $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=utf8mb4",
+            $connection = new PDO(
+                "mysql:host={$this->host};dbname={$this->database};charset=utf8mb4",
                 $this->username,
                 $this->password
             );
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            $this->conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+            $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $connection->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+            return $connection;
         } catch (PDOException $e) {
-            die("Connection Error: " . $e->getMessage());
+            die('Connection Error: ' . $e->getMessage());
         }
-        return $this->conn;
     }
 }
