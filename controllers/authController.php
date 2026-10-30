@@ -1,18 +1,28 @@
 <?php
+// Ini buat ngatur login, logout, dan pemeriksaan sesi user.
+
 class AuthController {
     private User $user;
 
     public function __construct() {
-        $this->user = new User((new Database())->getConnection());
+        $db = (new Database())->getConnection();
+        $this->user = new User($db);
     }
 
     public function handle(string $action): void {
         switch ($action) {
-            case 'login':   $this->login();   break;
-            case 'logout':  $this->logout();  break;
+            case 'login':
+                $this->login();
+                break;
+            case 'logout':
+                $this->logout();
+                break;
             case 'session':
-            case 'check':   $this->session(); break;
-            default: json_response(['success' => false, 'message' => 'Aksi tidak ditemukan'], 404);
+            case 'check':
+                $this->session();
+                break;
+            default:
+                json_response(['success' => false, 'message' => 'Aksi tidak ditemukan'], 404);
         }
     }
 
@@ -56,7 +66,13 @@ class AuthController {
     }
 
     private function logout(): void {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            json_response(['success' => false, 'message' => 'Method harus POST'], 405);
+        }
+
         $_SESSION = [];
+        $cookie = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httponly']);
         session_destroy();
         json_response(['success' => true, 'message' => 'Logout berhasil']);
     }

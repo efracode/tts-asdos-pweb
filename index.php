@@ -1,38 +1,32 @@
 <?php
+// Ini buat menjadi pintu masuk API dan ngarahin request ke controller.
+
+function tanganiError(Throwable $error): void {
+    error_log($error->__toString());
+    json_response(['success' => false, 'message' => 'Kesalahan server'], 500);
+}
+
+set_exception_handler('tanganiError');
+
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
     session_start();
-    // Error dari controller tetap dikirim dalam format JSON.
-    set_exception_handler(function (Throwable $e): void {
-        json_response(['success' => false, 'message' => 'Kesalahan server'], 500);
-    });
 }
 
-// Body JSON murni (fetch + Content-Type: application/json) digabung ke $_POST
-if (empty($_POST)) {
-    $contentType = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
-    if (stripos($contentType, 'application/json') !== false) {
-        $json = json_decode(file_get_contents('php://input'), true);
-        if (is_array($json)) $_POST = $json;
-    }
-}
-
-spl_autoload_register(function (string $class): void {
-    $candidates = [
-        __DIR__ . '/models/' . strtolower($class) . '.php',
-        __DIR__ . '/config/' . strtolower($class) . '.php',
-        __DIR__ . '/controllers/' . lcfirst($class) . '.php',
-    ];
-    foreach ($candidates as $file) {
-        if (file_exists($file)) {
-            require_once $file;
-            return;
-        }
-    }
-});
+// Daftarkan file secara eksplisit agar alur aplikasi mudah diikuti.
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/models/user.php';
+require_once __DIR__ . '/models/menu.php';
+require_once __DIR__ . '/models/kategori.php';
+require_once __DIR__ . '/models/transaksi.php';
+require_once __DIR__ . '/controllers/authController.php';
+require_once __DIR__ . '/controllers/menuController.php';
+require_once __DIR__ . '/controllers/kategoriController.php';
+require_once __DIR__ . '/controllers/transaksiController.php';
+require_once __DIR__ . '/controllers/userController.php';
 
 function json_response(array $data, int $status = 200): void {
     http_response_code($status);

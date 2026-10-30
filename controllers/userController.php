@@ -1,44 +1,66 @@
 <?php
+// Ini buat ngatur data admin dan akun kasir.
+
 class UserController {
     private User $user;
 
     public function __construct() {
-        $this->user = new User((new Database())->getConnection());
+        $db = (new Database())->getConnection();
+        $this->user = new User($db);
     }
 
     public function handle(string $action): void {
         // Semua aksi di UserController memerlukan login sebagai admin
-        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        if (!isset($_SESSION['user'])) {
+            json_response(['success' => false, 'message' => 'Silakan login dulu'], 401);
+        }
+        if ($_SESSION['user']['role'] !== 'admin') {
             json_response(['success' => false, 'message' => 'Akses ditolak. Hanya admin yang bisa mengelola pengguna.'], 403);
         }
 
         switch ($action) {
-            case 'list':        $this->listAll();       break;
-            case 'kasir-list':  $this->kasirList();     break;
-            case 'detail':      $this->detail();        break;
-            case 'create':      $this->create();        break;
-            case 'update':      $this->update();        break;
-            case 'toggle':      $this->toggleActive();  break;
-            case 'reset-password': $this->resetPassword(); break;
-            case 'delete':      $this->delete();        break;
+            case 'list':
+                $this->listAll();
+                break;
+            case 'kasir-list':
+                $this->kasirList();
+                break;
+            case 'detail':
+                $this->detail();
+                break;
+            case 'create':
+                $this->create();
+                break;
+            case 'update':
+                $this->update();
+                break;
+            case 'toggle':
+                $this->toggleActive();
+                break;
+            case 'reset-password':
+                $this->resetPassword();
+                break;
+            case 'delete':
+                $this->delete();
+                break;
             default:
                 json_response(['success' => false, 'message' => 'Aksi tidak ditemukan'], 404);
         }
     }
 
-    /** Daftar semua user */
+    // Ini buat nampilin semua user.
     private function listAll(): void {
         $data = $this->user->getAll();
         json_response(['success' => true, 'data' => $data]);
     }
 
-    /** Daftar kasir + statistik transaksi */
+    // Ini buat nampilin kasir beserta ringkasan penjualannya.
     private function kasirList(): void {
         $data = $this->user->getKasirList();
         json_response(['success' => true, 'data' => $data]);
     }
 
-    /** Detail satu user */
+    // Ini buat ngambil detail satu user.
     private function detail(): void {
         $id = intval($_GET['id'] ?? 0);
         if ($id <= 0) {
@@ -51,7 +73,7 @@ class UserController {
         json_response(['success' => true, 'data' => $data]);
     }
 
-    /** Tambah user/kasir baru */
+    // Ini buat nambahin akun user baru.
     private function create(): void {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             json_response(['success' => false, 'message' => 'Method harus POST'], 405);
@@ -65,6 +87,9 @@ class UserController {
         // Validasi input
         if ($username === '' || $password === '' || $nama === '') {
             json_response(['success' => false, 'message' => 'Username, password, dan nama wajib diisi'], 422);
+        }
+        if (mb_strlen($nama) > 100) {
+            json_response(['success' => false, 'message' => 'Nama maksimal 100 karakter'], 422);
         }
         if (strlen($username) < 3 || strlen($username) > 50) {
             json_response(['success' => false, 'message' => 'Username harus 3-50 karakter'], 422);
@@ -99,7 +124,7 @@ class UserController {
         }
     }
 
-    /** Update data user (tanpa password) */
+    // Ini buat ngubah data user tanpa mengganti password.
     private function update(): void {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             json_response(['success' => false, 'message' => 'Method harus POST'], 405);
@@ -127,6 +152,9 @@ class UserController {
         if ($username === '' || $nama === '') {
             json_response(['success' => false, 'message' => 'Username dan nama wajib diisi'], 422);
         }
+        if (mb_strlen($nama) > 100) {
+            json_response(['success' => false, 'message' => 'Nama maksimal 100 karakter'], 422);
+        }
         if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
             json_response(['success' => false, 'message' => 'Username hanya boleh huruf, angka, dan underscore'], 422);
         }
@@ -152,7 +180,7 @@ class UserController {
         }
     }
 
-    /** Toggle aktif / nonaktif kasir */
+    // Ini buat mengaktifkan atau menonaktifkan akun kasir.
     private function toggleActive(): void {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             json_response(['success' => false, 'message' => 'Method harus POST'], 405);
@@ -183,7 +211,7 @@ class UserController {
         }
     }
 
-    /** Reset password kasir oleh admin */
+    // Ini buat mengganti password kasir oleh admin.
     private function resetPassword(): void {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             json_response(['success' => false, 'message' => 'Method harus POST'], 405);
@@ -211,7 +239,7 @@ class UserController {
         }
     }
 
-    /** Hapus user (hanya jika tidak punya transaksi) */
+    // Ini buat hapus user yang belum memiliki transaksi.
     private function delete(): void {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             json_response(['success' => false, 'message' => 'Method harus POST'], 405);

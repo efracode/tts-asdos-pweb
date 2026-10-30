@@ -1,4 +1,6 @@
 <?php
+// Ini buat nyimpen query database untuk data kategori.
+
 class Kategori {
     private PDO $conn;
     private string $table = 'kategori';

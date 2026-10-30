@@ -1,17 +1,27 @@
 <?php
+// Ini buat ngecek request checkout dan nampilin riwayat transaksi.
+
 class TransaksiController {
     private Transaksi $transaksi;
 
     public function __construct() {
-        $this->transaksi = new Transaksi((new Database())->getConnection());
+        $db = (new Database())->getConnection();
+        $this->transaksi = new Transaksi($db);
     }
 
     public function handle(string $action): void {
         switch ($action) {
-            case 'simpan':  $this->simpan();  break;
-            case 'riwayat': $this->riwayat(); break;
-            case 'detail':  $this->detail();  break;
-            default: json_response(['success' => false, 'message' => 'Aksi tidak ditemukan'], 404);
+            case 'simpan':
+                $this->simpan();
+                break;
+            case 'riwayat':
+                $this->riwayat();
+                break;
+            case 'detail':
+                $this->detail();
+                break;
+            default:
+                json_response(['success' => false, 'message' => 'Aksi tidak ditemukan'], 404);
         }
     }
 
@@ -36,7 +46,9 @@ class TransaksiController {
 
         $hasil = $this->transaksi->simpanTransaksi($login['id'], $items, $bayar);
 
-        if ($hasil['success']) json_response(['success' => true, 'data' => $hasil], 201);
+        if ($hasil['success']) {
+            json_response(['success' => true, 'data' => $hasil], 201);
+        }
         json_response(['success' => false, 'message' => $hasil['message']], 422);
     }
 
@@ -54,12 +66,16 @@ class TransaksiController {
         }
 
         $data = $this->transaksi->getDetail($id);
-        if (empty($data)) json_response(['success' => false, 'message' => 'Detail transaksi tidak ditemukan'], 404);
+        if (empty($data)) {
+            json_response(['success' => false, 'message' => 'Detail transaksi tidak ditemukan'], 404);
+        }
         json_response(['success' => true, 'data' => $data]);
     }
 
     private function wajibLogin(): array {
-        if (!isset($_SESSION['user'])) json_response(['success' => false, 'message' => 'Silakan login dulu'], 401);
+        if (!isset($_SESSION['user'])) {
+            json_response(['success' => false, 'message' => 'Silakan login dulu'], 401);
+        }
         return $_SESSION['user'];
     }
 }

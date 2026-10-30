@@ -1,4 +1,6 @@
 <?php
+// Ini buat nyimpen query database untuk data menu.
+
 class Menu {
     private PDO $conn;
     private string $table = 'menu';

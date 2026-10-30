@@ -1,3 +1,5 @@
+-- Ini buat membuat tabel database dan nambahin data awal.
+
 CREATE DATABASE IF NOT EXISTS kasirrestoran DEFAULT CHARSET utf8mb4;
 USE kasirrestoran;
 

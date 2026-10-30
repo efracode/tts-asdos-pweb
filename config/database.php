@@ -1,4 +1,6 @@
 <?php
+// Ini buat nyambungin aplikasi ke MySQL melalui PDO.
+
 class Database {
     private string $host = 'localhost';
     private string $database = 'kasirrestoran';
@@ -17,7 +19,8 @@ class Database {
             $connection->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
             return $connection;
         } catch (PDOException $e) {
-            die('Connection Error: ' . $e->getMessage());
+            error_log($e->__toString());
+            throw new RuntimeException('Database tidak dapat dihubungi.');
         }
     }
 }

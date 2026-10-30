@@ -1,0 +1,62 @@
+/* Ini buat memetakan nama ikon ke posisi pada gambar WebP. */
+.app-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    flex: none;
+    vertical-align: -0.125em;
+    background-color: currentColor;
+    -webkit-mask-image: url("../images/ui-icons.webp");
+    mask-image: url("../images/ui-icons.webp");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 8em 5em;
+    mask-size: 8em 5em;
+    -webkit-mask-position: var(--icon-x, 0px) var(--icon-y, 0px);
+    mask-position: var(--icon-x, 0px) var(--icon-y, 0px);
+}
+.app-icon.block { display: block; }
+
+.app-icon[data-icon="utensils"] { --icon-x: -0em; --icon-y: -0em; }
+.app-icon[data-icon="login"] { --icon-x: -1em; --icon-y: -0em; }
+.app-icon[data-icon="logout"] { --icon-x: -2em; --icon-y: -0em; }
+.app-icon[data-icon="search"] { --icon-x: -3em; --icon-y: -0em; }
+.app-icon[data-icon="close-circle"] { --icon-x: -4em; --icon-y: -0em; }
+.app-icon[data-icon="cart"] { --icon-x: -5em; --icon-y: -0em; }
+.app-icon[data-icon="register"] { --icon-x: -6em; --icon-y: -0em; }
+.app-icon[data-icon="close"] { --icon-x: -7em; --icon-y: -0em; }
+.app-icon[data-icon="print"] { --icon-x: -0em; --icon-y: -1em; }
+.app-icon[data-icon="tags"] { --icon-x: -1em; --icon-y: -1em; }
+.app-icon[data-icon="receipt"] { --icon-x: -2em; --icon-y: -1em; }
+.app-icon[data-icon="wallet"] { --icon-x: -3em; --icon-y: -1em; }
+.app-icon[data-icon="burger"] { --icon-x: -4em; --icon-y: -1em; }
+.app-icon[data-icon="chart"] { --icon-x: -5em; --icon-y: -1em; }
+.app-icon[data-icon="users-gear"] { --icon-x: -6em; --icon-y: -1em; }
+.app-icon[data-icon="plus"] { --icon-x: -7em; --icon-y: -1em; }
+.app-icon[data-icon="refresh"] { --icon-x: -0em; --icon-y: -2em; }
+.app-icon[data-icon="users"] { --icon-x: -1em; --icon-y: -2em; }
+.app-icon[data-icon="user-check"] { --icon-x: -2em; --icon-y: -2em; }
+.app-icon[data-icon="user-x"] { --icon-x: -3em; --icon-y: -2em; }
+.app-icon[data-icon="user-plus"] { --icon-x: -4em; --icon-y: -2em; }
+.app-icon[data-icon="warning"] { --icon-x: -5em; --icon-y: -2em; }
+.app-icon[data-icon="eye"] { --icon-x: -6em; --icon-y: -2em; }
+.app-icon[data-icon="eye-slash"] { --icon-x: -7em; --icon-y: -2em; }
+.app-icon[data-icon="box-open"] { --icon-x: -0em; --icon-y: -3em; }
+.app-icon[data-icon="edit"] { --icon-x: -1em; --icon-y: -3em; }
+.app-icon[data-icon="trash"] { --icon-x: -2em; --icon-y: -3em; }
+.app-icon[data-icon="user-circle"] { --icon-x: -3em; --icon-y: -3em; }
+.app-icon[data-icon="user-slash"] { --icon-x: -4em; --icon-y: -3em; }
+.app-icon[data-icon="key"] { --icon-x: -5em; --icon-y: -3em; }
+.app-icon[data-icon="basket"] { --icon-x: -6em; --icon-y: -3em; }
+.app-icon[data-icon="spinner"] { --icon-x: -7em; --icon-y: -3em; }
+.app-icon[data-icon="check-circle"] { --icon-x: -0em; --icon-y: -4em; }
+.app-icon[data-icon="error-circle"] { --icon-x: -1em; --icon-y: -4em; }
+.app-icon[data-icon="info-circle"] { --icon-x: -2em; --icon-y: -4em; }
+.app-icon[data-icon="user-lock"] { --icon-x: -3em; --icon-y: -4em; }
+.app-icon[data-icon="minus"] { --icon-x: -4em; --icon-y: -4em; }
+.app-icon[data-icon="login-arrow"] { --icon-x: -5em; --icon-y: -4em; }
+.app-icon[data-icon="logout-arrow"] { --icon-x: -6em; --icon-y: -4em; }
+.app-icon[data-icon="star"] { --icon-x: -7em; --icon-y: -4em; }
+
+.app-icon.is-spinning { animation: app-icon-spin 1s linear infinite; }
+@keyframes app-icon-spin { to { transform: rotate(360deg); } }

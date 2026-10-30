@@ -1,4 +1,6 @@
 <?php
+// Ini buat nyimpen transaksi, detail belanja, dan perubahan stok.
+
 class Transaksi {
     private PDO $conn;
 
@@ -6,21 +8,24 @@ class Transaksi {
         $this->conn = $db;
     }
 
+    // Ini buat nyimpen penjualan sebagai satu proses; jika gagal, semua perubahan dibatalkan.
     public function simpanTransaksi(int $idUser, array $items, int $bayar): array {
+        $nomorLock = null;
         try {
-            $items = $this->siapkanItems($items);
             $this->conn->beginTransaction();
+            $items = $this->siapkanItems($items);
 
             $total = $this->hitungTotal($items);
             if ($bayar < $total) {
                 throw new RuntimeException('Uang pembayaran kurang dari total belanja.');
             }
 
-            $nomor = $this->nomorTransaksi();
+            $nomor = $this->nomorTransaksi($nomorLock);
             $idTransaksi = $this->simpanHeader($nomor, $idUser, $total, $bayar);
             $this->simpanDetailDanKurangiStok($idTransaksi, $items);
 
             $this->conn->commit();
+            $this->lepasKunciNomor($nomorLock);
             return [
                 'success' => true,
                 'no_transaksi' => $nomor,
@@ -31,10 +36,20 @@ class Transaksi {
             if ($this->conn->inTransaction()) {
                 $this->conn->rollBack();
             }
-            return ['success' => false, 'message' => $error->getMessage()];
+            $this->lepasKunciNomor($nomorLock);
+            if ($error instanceof PDOException) {
+                error_log($error->__toString());
+                return ['success' => false, 'message' => 'Terjadi gangguan saat menyimpan transaksi. Silakan coba lagi.'];
+            }
+            if ($error instanceof InvalidArgumentException || $error instanceof RuntimeException) {
+                return ['success' => false, 'message' => $error->getMessage()];
+            }
+            error_log($error->__toString());
+            return ['success' => false, 'message' => 'Transaksi gagal disimpan. Silakan coba lagi.'];
         }
     }
 
+    // Ini buat merapikan item dan ngecek menu serta stok masih tersedia.
     private function siapkanItems(array $items): array {
         if (!$items) {
             throw new InvalidArgumentException('Item transaksi tidak boleh kosong.');
@@ -50,6 +65,8 @@ class Transaksi {
             }
             $jumlah[$idMenu] = ($jumlah[$idMenu] ?? 0) + $qty;
         }
+        // Kunci menu dalam urutan yang sama agar checkout bersamaan tidak deadlock.
+        ksort($jumlah, SORT_NUMERIC);
 
         $hasil = [];
         $ambilMenu = $this->conn->prepare(
@@ -85,8 +102,18 @@ class Transaksi {
         return $total;
     }
 
-    private function nomorTransaksi(): string {
-        $prefix = 'TRX-' . date('Ymd') . '-';
+    // Ini buat membuat nomor transaksi unik, termasuk saat kasir checkout bersamaan.
+    private function nomorTransaksi(?string &$namaLock): string {
+        $tanggal = date('Ymd');
+        $prefix = 'TRX-' . $tanggal . '-';
+        $namaLock = 'kasirrestoran:' . $tanggal;
+        $kunci = $this->conn->prepare('SELECT GET_LOCK(:nama, 5)');
+        $kunci->execute([':nama' => $namaLock]);
+        if ((int) $kunci->fetchColumn() !== 1) {
+            $namaLock = null;
+            throw new RuntimeException('Nomor transaksi sedang digunakan. Silakan coba lagi.');
+        }
+
         $stmt = $this->conn->prepare(
             "SELECT no_transaksi FROM transaksi
              WHERE no_transaksi LIKE :prefix
@@ -96,10 +123,25 @@ class Transaksi {
         $stmt->execute();
 
         $terakhir = $stmt->fetchColumn();
-        $urutan = $terakhir ? ((int) substr($terakhir, -3)) + 1 : 1;
+        $bagianNomor = $terakhir ? substr($terakhir, strrpos($terakhir, '-') + 1) : '0';
+        $urutan = (int) $bagianNomor + 1;
         return $prefix . str_pad((string) $urutan, 3, '0', STR_PAD_LEFT);
     }
 
+    private function lepasKunciNomor(?string $namaLock): void {
+        if ($namaLock === null) {
+            return;
+        }
+
+        try {
+            $stmt = $this->conn->prepare('SELECT RELEASE_LOCK(:nama)');
+            $stmt->execute([':nama' => $namaLock]);
+        } catch (Throwable $error) {
+            // Koneksi database akan melepas advisory lock jika sesi berakhir.
+        }
+    }
+
+    // Ini buat nyimpen ringkasan transaksi dan ngambil ID barunya.
     private function simpanHeader(string $nomor, int $idUser, int $total, int $bayar): int {
         $stmt = $this->conn->prepare(
             "INSERT INTO transaksi
@@ -116,6 +158,7 @@ class Transaksi {
         return (int) $this->conn->lastInsertId();
     }
 
+    // Ini buat nyimpen setiap item dan mengurangi stok menu.
     private function simpanDetailDanKurangiStok(int $idTransaksi, array $items): void {
         $detail = $this->conn->prepare(
             'INSERT INTO detail_transaksi (id_transaksi, id_menu, qty, subtotal)
