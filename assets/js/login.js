@@ -21,8 +21,13 @@ form.addEventListener('submit', async (e) => {
         if (hasil.success) {
             window.location.href = hasil.data.role === 'admin' ? 'admin.php' : 'kasir.php';
         } else {
-            pesan.className = 'mb-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3';
-            pesan.innerText = hasil.message;
+            if (hasil.reason === 'account_inactive') {
+                pesan.className = 'mb-4 rounded-lg bg-amber-50 border border-amber-300 text-amber-800 text-sm px-4 py-3';
+                pesan.innerText = hasil.message;
+            } else {
+                pesan.className = 'mb-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3';
+                pesan.innerText = hasil.message;
+            }
             pesan.classList.remove('hidden');
         }
     } catch (err) {

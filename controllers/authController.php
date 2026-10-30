@@ -41,9 +41,16 @@ class AuthController {
         $this->user->username = $username;
         $this->user->password = $password;
 
-        $berhasilLogin = $this->user->login();
+        $result = $this->user->login();
 
-        if (!$berhasilLogin) {
+        if (!$result['success']) {
+            if ($result['reason'] === 'account_inactive') {
+                json_response([
+                    'success' => false,
+                    'message' => 'Akun Anda telah dinonaktifkan oleh Admin. Silakan hubungi Administrator untuk mengaktifkan kembali akun Anda.',
+                    'reason' => 'account_inactive',
+                ], 403);
+            }
             json_response(['success' => false, 'message' => 'Username atau password salah'], 401);
         }
 

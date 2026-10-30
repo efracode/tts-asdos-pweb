@@ -34,6 +34,9 @@ class UserController {
             case 'update':
                 $this->update();
                 break;
+            case 'toggle':
+                $this->toggleActive();
+                break;
             case 'reset-password':
                 $this->resetPassword();
                 break;
@@ -105,6 +108,7 @@ class UserController {
         $this->user->password  = $password;
         $this->user->nama      = $nama;
         $this->user->role      = $role;
+        $this->user->is_active = 1;
         try {
             if ($this->user->create()) {
                 json_response(['success' => true, 'message' => "User \"$nama\" berhasil ditambahkan sebagai $role"]);
@@ -173,6 +177,34 @@ class UserController {
             }
             throw $e;
         }
+    }
+
+    // Ini buat mengaktifkan atau menonaktifkan akun kasir.
+    private function toggleActive(): void {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            json_response(['success' => false, 'message' => 'Method harus POST'], 405);
+        }
+
+        $id = intval($_POST['id'] ?? 0);
+        $status = intval($_POST['is_active'] ?? -1);
+        if ($id <= 0 || !in_array($status, [0, 1], true)) {
+            json_response(['success' => false, 'message' => 'Parameter tidak valid'], 422);
+        }
+        if ($id == $_SESSION['user']['id']) {
+            json_response(['success' => false, 'message' => 'Anda tidak bisa menonaktifkan akun Anda sendiri'], 422);
+        }
+
+        $user = $this->user->getById($id);
+        if (!$user) {
+            json_response(['success' => false, 'message' => 'User tidak ditemukan'], 404);
+        }
+
+        if ($this->user->toggleActive($id, $status)) {
+            $label = $status ? 'diaktifkan' : 'dinonaktifkan';
+            json_response(['success' => true, 'message' => "Akun \"{$user['nama']}\" berhasil $label"]);
+        }
+
+        json_response(['success' => false, 'message' => 'Gagal mengubah status akun'], 500);
     }
 
     // Ini buat mengganti password kasir oleh admin.

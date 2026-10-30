@@ -42,11 +42,20 @@ function tampilkanToast(pesan, tipe = 'sukses') {
 }
 
 // Ini buat minta konfirmasi sebelum menjalankan aksi.
-function mintaKonfirmasi(judul, pesan, teksAksi = 'Ya, Hapus') {
+function mintaKonfirmasi(judul, pesan, teksAksi = 'Ya, Hapus', aksiPositif = false) {
     return new Promise((resolve) => {
         document.getElementById('judulKonfirmasi').innerText = judul;
         document.getElementById('pesanKonfirmasi').innerText = pesan;
-        document.getElementById('btnAksiKonfirmasi').innerText = teksAksi;
+        const tombolAksi = document.getElementById('btnAksiKonfirmasi');
+        tombolAksi.innerText = teksAksi;
+        tombolAksi.className = aksiPositif
+            ? 'flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 text-xs font-bold shadow-sm shadow-emerald-600/25'
+            : 'flex-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white py-2.5 text-xs font-bold shadow-sm shadow-rose-600/25';
+        const ikon = document.getElementById('ikonKonfirmasi');
+        ikon.className = aksiPositif
+            ? 'w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl mx-auto mb-3'
+            : 'w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl mx-auto mb-3';
+        ikon.firstElementChild.dataset.icon = aksiPositif ? 'check-circle' : 'warning';
         document.getElementById('modalKonfirmasi').classList.remove('hidden');
         callbackKonfirmasi = resolve;
     });
@@ -498,29 +507,38 @@ async function muatKasir() {
 }
 
 function updateStatsKasir() {
+    const aktif = listKasir.filter(k => k.is_active == 1).length;
+    const nonaktif = listKasir.filter(k => k.is_active == 0).length;
     const totalTrx = listKasir.reduce((s, k) => s + Number(k.total_transaksi || 0), 0);
     document.getElementById('statTotalKasir').innerText = listKasir.length;
+    document.getElementById('statKasirAktif').innerText = aktif;
+    document.getElementById('statKasirNonaktif').innerText = nonaktif;
     document.getElementById('statTotalTrxKasir').innerText = totalTrx;
 }
 
 function renderKasir(data = listKasir) {
     const tbody = document.getElementById('tabelKasir');
     if (!data.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-slate-400 py-10">
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-slate-400 py-10">
             <span class="app-icon text-3xl mb-2 block opacity-40" data-icon="users" aria-hidden="true"></span>Belum ada kasir terlist.
         </td></tr>`;
         return;
     }
     tbody.innerHTML = data.map(k => {
+        const isActive = k.is_active == 1;
+        const statusBadge = isActive
+            ? '<span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Aktif</span>'
+            : '<span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>Nonaktif</span>';
         const avatar = k.nama ? k.nama.charAt(0).toUpperCase() : '?';
+        const avatarBg = isActive ? 'bg-blue-600' : 'bg-slate-400';
         const trxTerakhir = k.transaksi_terakhir
             ? new Date(k.transaksi_terakhir).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
             : '<span class="text-slate-400 italic">Belum ada</span>';
         return `
-        <tr class="hover:bg-slate-50/80 transition-colors">
+        <tr class="hover:bg-slate-50/80 transition-colors ${!isActive ? 'opacity-60' : ''}">
             <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0">${escapeHTML(avatar)}</div>
+                    <div class="w-9 h-9 rounded-full ${avatarBg} text-white flex items-center justify-center text-xs font-bold shrink-0">${escapeHTML(avatar)}</div>
                     <div>
                         <span class="font-bold text-slate-900 block leading-tight">${escapeHTML(k.nama)}</span>
                         <span class="text-[10px] text-slate-400">Bergabung ${new Date(k.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'})}</span>
@@ -528,6 +546,7 @@ function renderKasir(data = listKasir) {
                 </div>
             </td>
             <td class="py-3 px-4"><code class="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded-md">${escapeHTML(k.username)}</code></td>
+            <td class="py-3 px-4">${statusBadge}</td>
             <td class="py-3 px-4 font-bold text-slate-800">${k.total_transaksi || 0}</td>
             <td class="py-3 px-4 font-extrabold text-orange-600">${rupiah(k.total_omset || 0)}</td>
             <td class="py-3 px-4 text-xs text-slate-500">${trxTerakhir}</td>
@@ -535,6 +554,9 @@ function renderKasir(data = listKasir) {
                 <div class="inline-flex items-center gap-0.5">
                     <button onclick="editUser(${k.id})" class="p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit User">
                         <span class="app-icon text-xs" data-icon="edit" aria-hidden="true"></span>
+                    </button>
+                    <button onclick="toggleKasirStatus(${k.id}, ${isActive ? 0 : 1})" class="p-2 rounded-lg transition-colors ${isActive ? 'text-slate-500 hover:text-amber-600 hover:bg-amber-50' : 'text-slate-500 hover:text-emerald-600 hover:bg-emerald-50'}" title="${isActive ? 'Nonaktifkan' : 'Aktifkan'}">
+                        <span class="app-icon text-xs" data-icon="${isActive ? 'user-slash' : 'user-check'}" aria-hidden="true"></span>
                     </button>
                     <button onclick="bukaResetPassword(${k.id})" class="p-2 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Reset Password">
                         <span class="app-icon text-xs" data-icon="key" aria-hidden="true"></span>
@@ -648,7 +670,7 @@ document.getElementById('formUser').addEventListener('submit', async (e) => {
 async function hapusUser(id) {
     const k = listKasir.find(x => x.id == id);
     const nama = k ? k.nama : 'user ini';
-    const yakin = await mintaKonfirmasi('Hapus User?', `Yakin ingin hapus "${nama}"? User yang sudah memiliki transaksi tidak bisa dihapus.`);
+    const yakin = await mintaKonfirmasi('Hapus User?', `Yakin ingin hapus "${nama}"? User yang sudah memiliki transaksi tidak bisa dihapus (nonaktifkan saja).`);
     if (!yakin) return;
 
     const body = new FormData();
@@ -662,6 +684,37 @@ async function hapusUser(id) {
             tampilkanToast(r.message, 'error');
         }
     } catch (err) {
+        tampilkanToast('Gagal terhubung ke server.', 'error');
+    }
+}
+
+async function toggleKasirStatus(id, statusBaru) {
+    const kasir = listKasir.find(k => k.id == id);
+    const nama = kasir ? kasir.nama : 'kasir ini';
+    const judul = statusBaru ? 'Aktifkan Kasir?' : 'Nonaktifkan Kasir?';
+    const pesan = statusBaru
+        ? `Kasir "${nama}" akan bisa login lagi.`
+        : `Kasir "${nama}" tidak bisa login sampai diaktifkan lagi.`;
+    const teksTombol = statusBaru ? 'Ya, Aktifkan' : 'Ya, Nonaktifkan';
+
+    const yakin = await mintaKonfirmasi(judul, pesan, teksTombol, statusBaru === 1);
+    if (!yakin) return;
+
+    const formData = new FormData();
+    formData.append('id', id);
+    formData.append('is_active', statusBaru);
+
+    try {
+        const respon = await fetch(API + 'user&action=toggle', { method: 'POST', body: formData });
+        const hasil = await respon.json();
+
+        if (hasil.success) {
+            tampilkanToast(hasil.message, 'sukses');
+            muatKasir();
+        } else {
+            tampilkanToast(hasil.message, 'error');
+        }
+    } catch (error) {
         tampilkanToast('Gagal terhubung ke server.', 'error');
     }
 }
