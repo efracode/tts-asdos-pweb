@@ -243,7 +243,7 @@ $user = $_SESSION['user'];
     <!-- Ini buat nampilin pengelolaan akun kasir. -->
     <section id="sec-kasir" class="hidden space-y-4">
         <!-- Ini buat nampilin ringkasan akun kasir. -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-sm flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-lg shrink-0">
                     <span class="app-icon" data-icon="users" aria-hidden="true"></span>
@@ -251,24 +251,6 @@ $user = $_SESSION['user'];
                 <div>
                     <span class="text-[11px] font-medium text-slate-400 block">Total Kasir</span>
                     <span id="statTotalKasir" class="text-lg font-extrabold text-slate-800">0</span>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-sm flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg shrink-0">
-                    <span class="app-icon" data-icon="user-check" aria-hidden="true"></span>
-                </div>
-                <div>
-                    <span class="text-[11px] font-medium text-slate-400 block">Kasir Aktif</span>
-                    <span id="statKasirAktif" class="text-lg font-extrabold text-emerald-600">0</span>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-sm flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-lg shrink-0">
-                    <span class="app-icon" data-icon="user-x" aria-hidden="true"></span>
-                </div>
-                <div>
-                    <span class="text-[11px] font-medium text-slate-400 block">Nonaktif</span>
-                    <span id="statKasirNonaktif" class="text-lg font-extrabold text-rose-600">0</span>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-sm flex items-center gap-3">
@@ -307,7 +289,6 @@ $user = $_SESSION['user'];
                         <tr class="bg-slate-50 text-slate-500 border-b border-slate-200/80 uppercase text-[11px] font-bold tracking-wider">
                             <th class="py-3.5 px-4">Kasir</th>
                             <th class="py-3.5 px-4">Username</th>
-                            <th class="py-3.5 px-4">Status</th>
                             <th class="py-3.5 px-4">Transaksi</th>
                             <th class="py-3.5 px-4">Omset</th>
                             <th class="py-3.5 px-4">Terakhir Aktif</th>

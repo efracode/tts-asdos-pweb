@@ -34,9 +34,6 @@ class UserController {
             case 'update':
                 $this->update();
                 break;
-            case 'toggle':
-                $this->toggleActive();
-                break;
             case 'reset-password':
                 $this->resetPassword();
                 break;
@@ -108,8 +105,6 @@ class UserController {
         $this->user->password  = $password;
         $this->user->nama      = $nama;
         $this->user->role      = $role;
-        $this->user->is_active = 1;
-
         try {
             if ($this->user->create()) {
                 json_response(['success' => true, 'message' => "User \"$nama\" berhasil ditambahkan sebagai $role"]);
@@ -180,37 +175,6 @@ class UserController {
         }
     }
 
-    // Ini buat mengaktifkan atau menonaktifkan akun kasir.
-    private function toggleActive(): void {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            json_response(['success' => false, 'message' => 'Method harus POST'], 405);
-        }
-
-        $id     = intval($_POST['id'] ?? 0);
-        $status = intval($_POST['is_active'] ?? -1);
-
-        if ($id <= 0 || !in_array($status, [0, 1], true)) {
-            json_response(['success' => false, 'message' => 'Parameter tidak valid'], 422);
-        }
-
-        // Proteksi: admin tidak bisa menonaktifkan dirinya sendiri
-        if ($id == $_SESSION['user']['id']) {
-            json_response(['success' => false, 'message' => 'Anda tidak bisa menonaktifkan akun Anda sendiri'], 422);
-        }
-
-        $existing = $this->user->getById($id);
-        if (!$existing) {
-            json_response(['success' => false, 'message' => 'User tidak ditemukan'], 404);
-        }
-
-        if ($this->user->toggleActive($id, $status)) {
-            $label = $status ? 'diaktifkan' : 'dinonaktifkan';
-            json_response(['success' => true, 'message' => "Akun \"{$existing['nama']}\" berhasil $label"]);
-        } else {
-            json_response(['success' => false, 'message' => 'Gagal mengubah status akun'], 500);
-        }
-    }
-
     // Ini buat mengganti password kasir oleh admin.
     private function resetPassword(): void {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -265,7 +229,7 @@ class UserController {
         if ($jumlahTrx > 0) {
             json_response([
                 'success' => false,
-                'message' => "Tidak bisa menghapus \"{$existing['nama']}\" karena sudah memiliki $jumlahTrx transaksi. Nonaktifkan saja jika tidak ingin user ini bisa login."
+                'message' => "Tidak bisa menghapus \"{$existing['nama']}\" karena sudah memiliki $jumlahTrx transaksi."
             ], 409);
         }
 
