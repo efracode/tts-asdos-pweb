@@ -25,6 +25,7 @@ CREATE TABLE menu (
     nama_menu VARCHAR(100) NOT NULL,
     harga INT NOT NULL,
     stok INT DEFAULT 0,
+    gambar VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_kategori) REFERENCES kategori(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -60,12 +61,12 @@ INSERT INTO users (username, password, nama, role, is_active) VALUES
 
 INSERT INTO kategori (nama_kategori) VALUES ('Makanan'), ('Minuman'), ('Snack');
 
-INSERT INTO menu (id_kategori, nama_menu, harga, stok) VALUES
-(1, 'Nasi Goreng Spesial', 25000, 50),
-(1, 'Ayam Bakar Madu', 35000, 30),
-(1, 'Mie Goreng Jawa', 22000, 40),
-(2, 'Es Teh Manis', 5000, 100),
-(2, 'Es Jeruk', 7000, 80),
-(2, 'Kopi Hitam', 8000, 60),
-(3, 'Kentang Goreng', 15000, 45),
-(3, 'Pisang Goreng', 10000, 50);
+INSERT INTO menu (id_kategori, nama_menu, harga, stok, gambar) VALUES
+(1, 'Nasi Goreng Spesial', 25000, 50, NULL),
+(1, 'Ayam Bakar Madu', 35000, 30, NULL),
+(1, 'Mie Goreng Jawa', 22000, 40, NULL),
+(2, 'Es Teh Manis', 5000, 100, NULL),
+(2, 'Es Jeruk', 7000, 80, NULL),
+(2, 'Kopi Hitam', 8000, 60, NULL),
+(3, 'Kentang Goreng', 15000, 45, NULL),
+(3, 'Pisang Goreng', 10000, 50, NULL);

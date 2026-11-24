@@ -1,0 +1,224 @@
+:root {
+    --pos-bg: #f8fafc;
+    --pos-surface: #ffffff;
+    --pos-ink: #0f172a;
+    --pos-muted: #475569;
+    --pos-accent: #c2410c;
+    --pos-accent-hover: #9a3412;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--pos-bg);
+    color: var(--pos-ink);
+}
+
+a[href],
+button,
+summary,
+select,
+label[for],
+label:has(> input[type="checkbox"], > input[type="radio"]),
+[role="button"],
+[role="tab"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+    cursor: pointer;
+}
+
+:disabled,
+[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--pos-accent);
+    outline-offset: 2px;
+}
+
+.skip-link {
+    position: absolute;
+    top: -48px;
+    left: 16px;
+    z-index: 100;
+    background: #0f172a;
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.skip-link:focus {
+    top: 12px;
+}
+
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+.pos-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.pos-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.pos-scroll::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 9999px;
+}
+
+.pos-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+}
+
+/* Animasi buka/tutup modal & dialog */
+.pos-modal {
+    opacity: 0;
+    transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pos-modal .pos-modal-panel {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pos-modal.is-open {
+    opacity: 1;
+}
+
+.pos-modal.is-open .pos-modal-panel {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Animasi buka/tutup backdrop & bottom sheet keranjang mobile */
+.pos-backdrop {
+    opacity: 0;
+    transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pos-backdrop.is-open {
+    opacity: 1;
+}
+
+@media (max-width: 1023px) {
+    .pos-sheet {
+        opacity: 0;
+        transform: translateY(100%);
+        transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease;
+    }
+    .pos-sheet.is-open {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animasi buka/tutup sidebar admin (collapse desktop & slide mobile) */
+#adminSidebar {
+    transition: width 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: width, transform;
+}
+
+#btnCollapseSidebar svg {
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#adminSidebar.is-collapsed #btnCollapseSidebar svg {
+    transform: rotate(180deg);
+}
+
+/* Animasi toast masuk */
+@keyframes posToastIn {
+    from {
+        transform: translateX(16px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.pos-enter {
+    animation: posToastIn 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@page {
+    size: 80mm 200mm;
+    margin: 0;
+}
+
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #modalStruk,
+    #modalStruk * {
+        visibility: visible !important;
+    }
+    #modalStruk {
+        display: block !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 80mm !important;
+        padding: 0 !important;
+        opacity: 1 !important;
+        background: #ffffff !important;
+    }
+    #modalStruk > div {
+        display: block !important;
+        position: static !important;
+        width: 72mm !important;
+        max-width: none !important;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        overflow: visible !important;
+        opacity: 1 !important;
+        animation: none !important;
+        transform: none !important;
+    }
+    #modalStruk > div > div {
+        padding: 0 !important;
+    }
+    #areaStruk {
+        display: block !important;
+        position: static;
+        width: 72mm;
+        padding: 4mm;
+        background: #ffffff;
+        color: #000000;
+        font: 12px/1.4 Arial, sans-serif;
+    }
+    #areaStruk [data-print-hide="true"] {
+        display: none !important;
+    }
+}

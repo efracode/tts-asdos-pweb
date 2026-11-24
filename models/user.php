@@ -4,7 +4,6 @@
 class User {
     private PDO $conn;
     private string $table = 'users';
-
     public int $id = 0;
     public string $username = '';
     public string $password = '';

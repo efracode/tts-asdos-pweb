@@ -9,6 +9,7 @@ class Menu {
     public string $nama_menu;
     public int $harga;
     public int $stok;
+    public ?string $gambar = null;
 
     public function __construct(PDO $db) {
         $this->conn = $db;
@@ -16,7 +17,7 @@ class Menu {
 
     public function getAll(): array {
         $stmt = $this->conn->query(
-            "SELECT m.id, m.id_kategori, m.nama_menu, m.harga, m.stok, k.nama_kategori
+            "SELECT m.id, m.id_kategori, m.nama_menu, m.harga, m.stok, m.gambar, k.nama_kategori
              FROM {$this->table} m
              JOIN kategori k ON k.id = m.id_kategori
              ORDER BY m.id DESC"
@@ -26,10 +27,11 @@ class Menu {
 
     public function getByKategori(int $id_kategori): array {
         $stmt = $this->conn->prepare(
-            "SELECT id, id_kategori, nama_menu, harga, stok
-             FROM {$this->table}
-             WHERE id_kategori = :id_kategori
-             ORDER BY nama_menu ASC"
+            "SELECT m.id, m.id_kategori, m.nama_menu, m.harga, m.stok, m.gambar, k.nama_kategori
+             FROM {$this->table} m
+             JOIN kategori k ON k.id = m.id_kategori
+             WHERE m.id_kategori = :id_kategori
+             ORDER BY m.nama_menu ASC"
         );
         $stmt->bindValue(':id_kategori', $id_kategori, PDO::PARAM_INT);
         $stmt->execute();
@@ -38,7 +40,7 @@ class Menu {
 
     public function getById(int $id): array|false {
         $stmt = $this->conn->prepare(
-            "SELECT id, id_kategori, nama_menu, harga, stok
+            "SELECT id, id_kategori, nama_menu, harga, stok, gambar
              FROM {$this->table}
              WHERE id = :id
              LIMIT 1"
@@ -50,13 +52,14 @@ class Menu {
 
     public function create(): bool {
         $stmt = $this->conn->prepare(
-            "INSERT INTO {$this->table} (id_kategori, nama_menu, harga, stok)
-             VALUES (:id_kategori, :nama_menu, :harga, :stok)"
+            "INSERT INTO {$this->table} (id_kategori, nama_menu, harga, stok, gambar)
+             VALUES (:id_kategori, :nama_menu, :harga, :stok, :gambar)"
         );
         $stmt->bindValue(':id_kategori', $this->id_kategori, PDO::PARAM_INT);
         $stmt->bindValue(':nama_menu', $this->nama_menu);
         $stmt->bindValue(':harga', $this->harga, PDO::PARAM_INT);
         $stmt->bindValue(':stok', $this->stok, PDO::PARAM_INT);
+        $stmt->bindValue(':gambar', $this->gambar, $this->gambar === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         return $stmt->execute();
     }
 
@@ -64,7 +67,7 @@ class Menu {
         $stmt = $this->conn->prepare(
             "UPDATE {$this->table}
              SET id_kategori = :id_kategori, nama_menu = :nama_menu,
-                 harga = :harga, stok = :stok
+                 harga = :harga, stok = :stok, gambar = :gambar
              WHERE id = :id"
         );
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -72,6 +75,7 @@ class Menu {
         $stmt->bindValue(':nama_menu', $this->nama_menu);
         $stmt->bindValue(':harga', $this->harga, PDO::PARAM_INT);
         $stmt->bindValue(':stok', $this->stok, PDO::PARAM_INT);
+        $stmt->bindValue(':gambar', $this->gambar, $this->gambar === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         return $stmt->execute();
     }
 
